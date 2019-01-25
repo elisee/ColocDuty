@@ -62,6 +62,7 @@ socket.addEventListener("message", (event) => {
     case "plzJoin":
       hide($(".loading"));
       show($(".join"));
+      $(".join .username").focus();
       break;
 
     case "addPlayer":
