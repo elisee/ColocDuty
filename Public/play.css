@@ -1,0 +1,32 @@
+* { box-sizing: border-box; font: inherit; user-select: inherit; outline: none; }
+*[hidden] { display: none !important; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  font-family: sans-serif;
+  user-select: none;
+  overflow: hidden;
+}
+
+body > div {
+  flex: 1;
+  overflow: hidden;
+}
+
+.loading, .disconnected {
+  font-size: 5em;
+}
+
+.viewer {
+  text-align: center;
+  padding: 2em;
+}
+
+.viewer .gameUrl {
+  font-size: 2em;
+}
