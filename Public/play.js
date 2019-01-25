@@ -45,7 +45,7 @@ socket.addEventListener("message", (event) => {
       $(".gameUrl").href = window.location.protocol + "//" + window.location.host + "/play/" + roomCode;
 
       gameData = json.data;
-      buildPlayerList();
+      applyViewerState();
       break;
 
     case "helloPlayer":
@@ -53,10 +53,10 @@ socket.addEventListener("message", (event) => {
       hide($(".loading"));
       hide($(".join"));
       show($(".player"));
-      show($(".player .waitingForStart"));
-      $(".player .waitingForStart .username").textContent = json.username;
+      $(".player .waiting .username").textContent = json.username;
 
       gameData = json.data;
+      applyPlayerState();
       break;
 
     case "plzJoin":
@@ -73,6 +73,12 @@ socket.addEventListener("message", (event) => {
       removeFromList(gameData.players, json.username);
       buildPlayerList();
       break;
+
+    case "setState":
+      gameData.state = json.state;
+      if (isViewer) applyViewerState();
+      else applyPlayerState();
+      break;
   }
 });
 
@@ -86,7 +92,7 @@ socket.addEventListener("close", (event) => {
 });
 
 // Join
-$(".join button").addEventListener("click", (event) => {
+$(".join").addEventListener("submit", (event) => {
   event.preventDefault();
 
   hide($(".join"));
@@ -98,8 +104,34 @@ $(".join button").addEventListener("click", (event) => {
 function buildPlayerList() {
   const listElt = $(".viewer .players ul");
   listElt.innerHTML = "";
-  
+
   for (const player of gameData.players) {
     $make("li", listElt, { textContent: player });
   }
+}
+
+function applyViewerState() {
+  setVisible($(".viewer .waiting"), gameData.state.name === "waiting");
+  setVisible($(".viewer .inGame"), gameData.state.name === "inGame");
+
+  switch (gameData.state.name) {
+    case "waiting":
+      buildPlayerList();
+      break;
+
+    case "inGame":
+      break;
+  }
+}
+
+// Player
+$(".player .waiting").addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  send({ type: "start" });
+});
+
+function applyPlayerState() {
+  setVisible($(".player .waiting"), gameData.state.name === "waiting");
+  setVisible($(".player .inGame"), gameData.state.name === "inGame");
 }

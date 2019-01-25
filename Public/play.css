@@ -22,17 +22,26 @@ body > div, body > form {
   font-size: 5em;
 }
 
-.viewer {
-  text-align: center;
-  padding: 2em;
-}
-
-.viewer .gameUrl {
-  display: block;
-  font-size: 2em;
-}
-
+/* Join */
 .join {
   text-align: center;
   padding: 2em;
 }
+
+/* Viewer */
+.viewer {
+  text-align: center;
+  padding: 2em;
+}  
+
+.viewer .gameUrl {
+  display: block;
+  font-size: 2em;
+}  
+
+/* Player */
+.player .waitingForStart {
+  text-align: center;
+  padding: 2em;
+}
+

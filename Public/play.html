@@ -18,7 +18,7 @@
     <div><button>Ready!</button></div>
   </form>
   <div class="viewer" hidden>
-    <div class="waitingForPlayers">
+    <div class="waiting" hidden>
       <div>Join the game at:</div>
       <a class="gameUrl"></a>
 
@@ -27,12 +27,12 @@
         <ul></ul>
       </div>
     </div>
-    <div class="inGame">
+    <div class="inGame" hidden>
       <canvas></canvas>
     </div>
   </div>
   <div class="player" hidden>
-    <form class="waitingForStart" hidden>
+    <form class="waiting" hidden>
       <div>Hello <span class="username"></span></div>
       <div>Click start when all players have joined!</div>
       <button>Start!</button>

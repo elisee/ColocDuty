@@ -8,11 +8,13 @@ namespace ColocDuty
     {
         public readonly Guid Guid;
         public readonly string Username;
+        public ColocPeer Peer;
 
-        public ColocPlayer(Guid guid, string username)
+        public ColocPlayer(Guid guid, string username, ColocPeer peer)
         {
             Guid = guid;
             Username = username;
+            Peer = peer;
         }
     }
 }
