@@ -1,4 +1,4 @@
-* { box-sizing: border-box; font: inherit; user-select: inherit; outline: none; }
+* { box-sizing: border-box; font: inherit; user-select: inherit; outline: none; margin: 0; padding: 0; }
 *[hidden] { display: none !important; }
 
 html, body {
@@ -13,7 +13,7 @@ body {
   overflow: hidden;
 }
 
-body > div {
+body > div, body > form {
   flex: 1;
   overflow: hidden;
 }
@@ -28,5 +28,11 @@ body > div {
 }
 
 .viewer .gameUrl {
+  display: block;
   font-size: 2em;
+}
+
+.join {
+  text-align: center;
+  padding: 2em;
 }

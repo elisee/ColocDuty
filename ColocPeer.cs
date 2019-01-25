@@ -8,6 +8,8 @@ namespace ColocDuty
     class ColocPeer
     {
         public readonly WebSocket Socket;
+        public ColocPlayer Player;
+        public bool IsViewer;
 
         public ColocPeer(WebSocket socket)
         {

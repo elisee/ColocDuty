@@ -9,10 +9,18 @@
 </head>
 
 <body>
+  <form class="join" hidden>
+    <div>
+      <div>Your name:</div>
+      <div><input type="text" class="username"></div>
+    </div>
+
+    <div><button>Ready!</button></div>
+  </form>
   <div class="viewer" hidden>
     <div class="waitingForPlayers">
       <div>Join the game at:</div>
-      <div class="gameUrl"></div>
+      <a class="gameUrl"></a>
 
       <div class="players">
         <header>Players</header>
@@ -24,66 +32,23 @@
     </div>
   </div>
   <div class="player" hidden>
-    <div class="join">
-      Your name:
-      <input type="text" class="name">
-
-      <button>Ready!</button>
-    </div>
-    <div class="waitingForStart">
+    <form class="waitingForStart" hidden>
+      <div>Hello <span class="username"></span></div>
+      <div>Click start when all players have joined!</div>
       <button>Start!</button>
+    </form>
+    <div class="inGame">
+      <canvas></canvas>
     </div>
-
   </div>
   <div class="loading">
     Loading...
   </div>
   <div class="disconnected" hidden>
-    Disconnected.
+    Disconnected. <span class="reason"></span>
   </div>
 
-  <script>
-    const $ = document.querySelector.bind(document);
-    const $$ = document.querySelectorAll.bind(document);
-
-    function $make(tagName, parent, props) {
-      const elt = document.createElement(tagName);
-      if (parent != null) parent.appendChild(elt);
-      for (const key in props) elt[key] = props[key];
-      return elt;
-    }
-
-    const show = (elt) => elt.hidden = false;
-    const hide = (elt) => elt.hidden = true;
-    const setVisible = (elt, visible) => elt.hidden = !visible;
-
-    // Socket
-    const socket = new WebSocket("ws://" + window.location.host + window.location.pathname);
-
-    function send(json) { socket.send(JSON.stringify(json)); }
-
-    socket.addEventListener("message", (event) => {
-      const json = JSON.parse(event.data);
-
-      switch (json.type) {
-        case "setup":
-          hide($(".loading"));
-          if (json.mode === "viewer") {
-            show($(".viewer"));
-            $(".gameUrl").textContent = window.location.host + window.location.pathname;
-          }
-          else show($(".player"));
-          break;
-      }
-    });
-
-    socket.addEventListener("close", (event) => {
-      hide($(".viewer"));
-      hide($(".player"));
-      hide($(".loading"))
-      show($(".disconnected"));
-    });
-  </script>
+  <script src="/play.js"></script>
 </body>
 
 </html>

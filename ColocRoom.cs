@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Collections.Extensions;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -102,13 +103,120 @@ namespace ColocDuty
         public void ReceiveMessage(ColocPeer peer, string data) => _networkInQueue.Enqueue(new NetworkInEvent { Type = NetworkInEventType.ReceiveFromPeer, Peer = peer, Data = data });
 
         void SendJSON(List<ColocPeer> peers, string serializedData) => _networkOutQueue.Add(new NetworkOutEvent { Peers = peers.ToArray(), Data = serializedData });
-        void SendJSON(ColocPeer peer, string serializedData) => _networkOutQueue.Add(new NetworkOutEvent  { Peers = new ColocPeer[] { peer }, Data = serializedData });
+        void SendJSON(ColocPeer peer, string serializedData) => _networkOutQueue.Add(new NetworkOutEvent { Peers = new ColocPeer[] { peer }, Data = serializedData });
 
         void RunLoop()
         {
             var stopwatch = Stopwatch.StartNew();
 
             var peers = new List<ColocPeer>();
+            var players = new OrderedDictionary<Guid, ColocPlayer>();
+
+            var viewerPeers = new List<ColocPeer>();
+
+            JsonObject MakeGameJson()
+            {
+                var jsonData = new JsonObject();
+
+                var jsonPlayers = new JsonArray();
+                foreach (var player in players.Values) jsonPlayers.Add(player.Username);
+                jsonData.Add("players", jsonPlayers);
+
+                return jsonData;
+            }
+
+            void Kick(ColocPeer peer, string reason)
+            {
+                _networkOutQueue.Add(new NetworkOutEvent { Peers = new ColocPeer[] { peer }, KickReason = reason, Type = NetworkOutEventType.KickPeer });
+            }
+
+            void HandleMessage(ColocPeer peer, string type, JsonObject inJson)
+            {
+                switch (type)
+                {
+                    case "hello":
+                        if (peer.Player != null) { Kick(peer, "Player already setup."); return; }
+
+                        if (inJson.TryGetValue("viewerMode", out var jsonViewerMode))
+                        {
+                            peer.IsViewer = true;
+                            viewerPeers.Add(peer);
+
+                            var outJson = new JsonObject();
+                            outJson.Add("type", "helloViewer");
+                            outJson.Add("data", MakeGameJson());
+                            SendJSON(peer, outJson.ToString());
+                            return;
+                        }
+
+                        if (inJson.TryGetValue("guid", out var jsonGuid) &&
+                        jsonGuid != null && jsonGuid.JsonType == JsonType.String &&
+                        Guid.TryParse((string)jsonGuid, out var guid))
+                        {
+                            if (players.TryGetValue(guid, out peer.Player))
+                            {
+                                var outJson = new JsonObject();
+                                outJson.Add("type", "helloPlayer");
+                                outJson.Add("guid", peer.Player.Guid.ToString());
+                                outJson.Add("username", peer.Player.Username);
+                                outJson.Add("data", MakeGameJson());
+                                SendJSON(peer, outJson.ToString());
+
+                                {
+                                    var broadcastJson = new JsonObject();
+                                    broadcastJson.Add("type", "addPlayer");
+                                    broadcastJson.Add("username", peer.Player.Username);
+                                    SendJSON(peers, broadcastJson.ToString());
+                                }
+                                return;
+                            }
+                        }
+
+                        {
+                            var outJson = new JsonObject();
+                            outJson.Add("type", "plzJoin");
+                            SendJSON(peer, outJson.ToString());
+                        }
+
+                        break;
+
+                    case "joinAsPlayer":
+                        if (peer.IsViewer) { Kick(peer, "Peer was setup as viewer."); return; }
+                        if (peer.Player != null) { Kick(peer, "Player already setup."); return; }
+
+                        if (!inJson.TryGetValue("username", out var jsonUsername) || 
+                            jsonUsername == null ||
+                            jsonUsername.JsonType != JsonType.String)
+                        {
+                            Kick(peer, "Username missing."); return;
+                        }
+
+                        var username = ((string)jsonUsername).Trim();
+                        if (username.Length < 1 || username.Length > 20)
+                        {
+                            Kick(peer, "Username must be between 1 and 20 characters long."); return;
+                        }
+
+                        peer.Player = new ColocPlayer(Guid.NewGuid(), (string)jsonUsername);
+                        players.Add(peer.Player.Guid, peer.Player);
+
+                        {
+                            var outJson = new JsonObject();
+                            outJson.Add("type", "helloPlayer");
+                            outJson.Add("guid", peer.Player.Guid.ToString());
+                            outJson.Add("username", peer.Player.Username);
+                            SendJSON(peer, outJson.ToString());
+                        }
+
+                        {
+                            var broadcastJson = new JsonObject();
+                            broadcastJson.Add("type", "addPlayer");
+                            broadcastJson.Add("username", peer.Player.Username);
+                            SendJSON(peers, broadcastJson.ToString());
+                        }
+                        break;
+                }
+            }
 
             while (!_shutdownToken.IsCancellationRequested)
             {
@@ -117,16 +225,41 @@ namespace ColocDuty
                     switch (@event.Type)
                     {
                         case NetworkInEventType.AddPeer:
-                            var obj = new JsonObject();
-                            obj.Add("type", "setup");
-                            obj.Add("mode", peers.Count == 0 ? "viewer" : "player");
-                            SendJSON(@event.Peer, obj.ToString());
-
                             peers.Add(@event.Peer);
+                            break;
+
+                        case NetworkInEventType.ReceiveFromPeer:
+                            JsonObject json;
+                            string type;
+
+                            try
+                            {
+                                json = (JsonObject)JsonValue.Parse(@event.Data);
+                                type = (string)json["type"];
+                            }
+                            catch (Exception)
+                            {
+                                Kick(@event.Peer, "Invalid JSON");
+                                continue;
+                            }
+
+                            HandleMessage(@event.Peer, type, json);
                             break;
 
                         case NetworkInEventType.RemovePeer:
                             peers.Remove(@event.Peer);
+
+                            if (@event.Peer.Player != null)
+                            {
+                                players.Remove(@event.Peer.Player.Guid);
+
+                                var broadcastJson = new JsonObject();
+                                broadcastJson.Add("type", "removePlayer");
+                                broadcastJson.Add("username", @event.Peer.Player.Username);
+                                SendJSON(peers, broadcastJson.ToString());
+                            }
+
+                            viewerPeers.Remove(@event.Peer);
 
 #if !DEBUG
                             if (peers.Count == 0)
@@ -135,10 +268,6 @@ namespace ColocDuty
                                 return;
                             }
 #endif
-                            break;
-
-                        case NetworkInEventType.ReceiveFromPeer:
-                            Console.WriteLine("Peer:" + @event.Data);
                             break;
                     }
                 }

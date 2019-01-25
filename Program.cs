@@ -96,8 +96,33 @@ namespace ColocDuty
                         });
 
                         roomTasks.TryAdd(roomTask, 0);
-                        context.Response.Redirect("/play/" + room.Code);
+                        context.Response.Redirect("/view/" + room.Code);
                         return Task.CompletedTask;
+                    });
+
+                    router.MapGet("view/{code}", context =>
+                    {
+                        var roomCode = context.GetRouteValue("code") as string;
+                        if (roomCode == null)
+                        {
+                            context.Response.StatusCode = 400;
+                            return Task.CompletedTask;
+                        }
+
+#if DEBUG
+                        if (!rooms.ContainsKey(roomCode))
+                        {
+                            context.Response.Redirect("/start");
+                            return Task.CompletedTask;
+                        }
+#endif
+
+
+#if DEBUG
+                        LoadPlayHtml();
+#endif
+
+                        return context.Response.WriteAsync(playHtml);
                     });
 
                     router.MapGet("play/{code}", context =>
@@ -132,7 +157,7 @@ namespace ColocDuty
             async Task WebSocketMiddleware(HttpContext context, Func<Task> next)
             {
                 if (!context.WebSockets.IsWebSocketRequest) { await next(); return; }
-                if (!context.Request.Path.StartsWithSegments("/play", out var codeWithSlash)) { await next(); return; }
+                if (!context.Request.Path.StartsWithSegments("/room", out var codeWithSlash)) { await next(); return; }
 
                 var code = codeWithSlash.ToString().Substring(1);
 
