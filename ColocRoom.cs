@@ -212,6 +212,15 @@ namespace ColocDuty
                             Kick(peer, "Username must be between 1 and 20 characters long."); return;
                         }
 
+                        foreach (var player in players.Values)
+                        {
+                            if (player.Username == username)
+                            {
+                                Kick(peer, "There is already someone with this name.");
+                                return;
+                            }
+                        }
+
                         peer.Player = new ColocPlayer(Guid.NewGuid(), (string)jsonUsername, peer);
                         players.Add(peer.Player.Guid, peer.Player);
 
