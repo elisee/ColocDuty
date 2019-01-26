@@ -229,9 +229,9 @@ function animateViewer(ms) {
     const cardBackImage = images[`/Assets/Cards/Back.jpg`];
     const cardBackScale = 40;
 
-    const handCount = 4; // gameData.playerStates[player.username].handCount
-    for (let j = 0; j < handCount; j++) {
-      const x = screenCharSize / 2 + (j - handCount / 2) * cardBackImage.width / cardBackScale;
+    const { handCardCount } = gameData.state.playerStates[player.username];
+    for (let j = 0; j < handCardCount; j++) {
+      const x = screenCharSize / 2 + (j - handCardCount / 2) * cardBackImage.width / cardBackScale;
       const y = i * screenCharPadding + screenCharSize * 0.8;
 
       ctx.drawImage(
