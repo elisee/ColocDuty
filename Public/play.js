@@ -217,15 +217,39 @@ function animatePlayerInGame() {
   ctx.fillStyle = "#00f";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  const refWidth = 1080;
+  const refHeight = 1920;
+  const scale = canvas.height / refHeight;
+
   ctx.save();
-  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.translate(canvas.width / 2, 0);
+  ctx.scale(scale, scale);
+  ctx.translate(0, refHeight / 2);
 
   ctx.fillStyle = "#f0f";
 
+  // Hovered card
+  ctx.save();
+  ctx.translate(-640 / 2, -810 / 2);
+  ctx.fillRect(0, 0, 640, 810);
+  ctx.restore();
+
+  // Hand
+  const cardThumbWidth = 192;
+  const cardThumbHeight = 243;
+  const cardThumbSpace = 16;
+  const cardCount = selfState.hand.length;
+
+  ctx.save();
+  ctx.fillStyle = "#f0c";
+  ctx.translate(-(cardCount * cardThumbWidth + (cardCount - 1) * cardThumbSpace) / 2, 600);
+
   for (let i = 0; i < selfState.hand.length; i++) {
     const card = selfState.hand[i];
-    ctx.fillRect(i * 200, 0, 100, 100);
+    ctx.fillRect(i * (cardThumbWidth + cardThumbSpace), 0, cardThumbWidth, cardThumbHeight);
   }
+
+  ctx.restore();
 
   ctx.restore();
 }
