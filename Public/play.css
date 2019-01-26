@@ -8,7 +8,7 @@ html, body {
 body {
   margin: 0;
   display: flex;
-  font-family: sans-serif;
+  font-family: 'Montserrat', sans-serif;
   user-select: none;
   overflow: hidden;
 }
@@ -19,7 +19,7 @@ body > div, body > form {
 }
 
 .loading, .disconnected {
-  font-size: 5em;
+  font-size: 2em;
 }
 
 /* Viewer */
