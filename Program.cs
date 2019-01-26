@@ -115,10 +115,7 @@ namespace ColocDuty
                             context.Response.Redirect("/start");
                             return Task.CompletedTask;
                         }
-#endif
 
-
-#if DEBUG
                         LoadGameHtml();
 #endif
 

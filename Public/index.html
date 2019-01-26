@@ -12,17 +12,17 @@
 <body>
   <h1>ColocDuty</h1>
 
-  <div class="start">
-    <h2>Start</h2>
-    <p>On your TV.</p>
-    <div><button>Start a room</button></div>
-  </div>
-
   <div class="join">
     <h2>Join</h2>
     <p>Using your smartphone.</p>
     <div class="code"><input type="text" autofocus minlength="4" maxlength="4"></div>
     <div><button>Join this room</button></div>
+  </div>
+
+  <div class="start">
+    <h2>Start</h2>
+    <p>On your TV.</p>
+    <div><button>Start a room</button></div>
   </div>
 
   <script src="/Scripts/utils.js"></script>
@@ -40,7 +40,7 @@
 
       window.location = "/play/" + code;
     });
-</script>
+  </script>
 </body>
 
 </html>
