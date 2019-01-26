@@ -140,7 +140,14 @@ namespace ColocDuty
                 app.UseStaticFiles(new StaticFileOptions
                 {
                     RequestPath = "",
-                    FileProvider = new PhysicalFileProvider(publicPath)
+                    FileProvider = new PhysicalFileProvider(publicPath),
+
+                    // TODO: Only in debug? need to do cache busting though
+                    OnPrepareResponse = context =>
+                    {
+                        context.Context.Response.Headers.Add("Cache-Control", "no-cache, no-store");
+                        context.Context.Response.Headers.Add("Expires", "-1");
+                    }
                 });
             });
 
