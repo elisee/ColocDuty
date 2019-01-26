@@ -17,7 +17,7 @@ baseImageUrls.push("/Assets/Cards/Money.png");
 if (setup.isViewer) {
   baseImageUrls.push(`/Assets/Viewer/Background.jpg`);
   baseImageUrls.push(`/Assets/Viewer/CharacterFrame.png`);
-  baseImageUrls.push(`/Assets/Viewer/BillIcon.png`);
+  baseImageUrls.push(`/Assets/Viewer/PhaseIcons.png`);
   baseImageUrls.push(`/Assets/Viewer/CardIcons.png`);
   baseImageUrls.push("/Assets/Viewer/HygieneBarEmpty.png");
   baseImageUrls.push("/Assets/Viewer/HygieneBarFull.png");

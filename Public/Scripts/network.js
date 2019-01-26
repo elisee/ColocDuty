@@ -84,8 +84,14 @@ function onSocketMessage(event) {
 
     case "goInGamePhase":
       networkData.game.phase = json.phase;
+      networkData.game.pendingUsernames = json.pendingUsernames;
+
       if (setup.isViewer) engine.applyViewerState();
       else engine.applyPlayerState();
+      break;
+
+    case "playerDone":
+      removeFromList(networkData.game.pendingUsernames, json.username);
       break;
   }
 }

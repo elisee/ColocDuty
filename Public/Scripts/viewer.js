@@ -118,7 +118,7 @@
     const cartridgeOffset = (characterSize - cartridgeSize) / 2;
 
     const frameImage = images[`/Assets/Viewer/CharacterFrame.png`];
-    const billIcon = images[`/Assets/Viewer/BillIcon.png`];
+    const phaseIcons = images[`/Assets/Viewer/PhaseIcons.png`];
     const cardIcons = images[`/Assets/Viewer/CardIcons.png`];
 
     for (let i = 0; i < networkData.players.length; i++) {
@@ -133,11 +133,13 @@
       if (networkData.game != null) {
         const { phase } = networkData.game;
 
-        if (phase.name === "PayRent") {
-          const hasPaid = phase.rentPendingPlayers.indexOf(player.username) === -1;
+        if (phase.name === "PayRent" || phase.name === "Market") {
+          const isDone = networkData.game.pendingUsernames.indexOf(player.username) === -1;
           ctx.save();
-          ctx.translate(playerX + cartridgeOffset + (flipped ? -billIcon.height : cartridgeSize), playerY + 120);
-          drawFrame(ctx, billIcon, hasPaid ? 1 : 0, 0, 0);
+          ctx.translate(playerX + cartridgeOffset + (flipped ? -phaseIcons.height : cartridgeSize), playerY + 120);
+
+          const offset = phase.name === "PayRent" ? 0 : 2;
+          drawFrame(ctx, phaseIcons, offset + (isDone ? 1 : 0), 0, 0);
           ctx.restore();
         }
       }

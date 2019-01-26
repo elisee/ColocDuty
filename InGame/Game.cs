@@ -112,13 +112,14 @@ namespace ColocDuty.InGame
 
         public readonly OrderedDictionary<Player, PlayerState> PlayerStates = new OrderedDictionary<Player, PlayerState>();
 
+        // Used by PayRent and Market
+        readonly List<Player> _pendingPlayers = new List<Player>();
+
         #region Pay rent Phase
-        readonly List<Player> _rentPendingPlayers = new List<Player>();
         int _rentAmount = 100;
         #endregion
 
         #region Market Phase
-
         #endregion
 
         public Game(Room room)
@@ -148,29 +149,90 @@ namespace ColocDuty.InGame
                 case TurnPhase.PayRentFadeIn:
                     if (_phaseTimer >= FadeInDuration)
                     {
-                        _rentPendingPlayers.Clear();
-                        _rentPendingPlayers.AddRange(PlayerStates.Keys);
+                        _pendingPlayers.Clear();
+                        // TODO: Remove or skip dead players
+                        _pendingPlayers.AddRange(PlayerStates.Keys);
                         SetPhase(TurnPhase.PayRent);
                     }
                     break;
 
-                case TurnPhase.PayRent:
-                    break;
-
                 case TurnPhase.MarketFadeIn:
-                    break;
-
-                case TurnPhase.Market:
+                    if (_phaseTimer >= FadeInDuration)
+                    {
+                        _pendingPlayers.Clear();
+                        // TODO: Remove or skip dead players
+                        _pendingPlayers.AddRange(PlayerStates.Keys);
+                        SetPhase(TurnPhase.Market);
+                    }
                     break;
 
                 case TurnPhase.FadeOut:
+                    if (_phaseTimer >= FadeInDuration)
+                    {
+                        SetPhase(TurnPhase.PayRentFadeIn);
+                    }
                     break;
             }
         }
 
-        public void UseCard(Player player, int cardId)
+        public void PlayerUseCard(Player player, int cardId)
         {
-            // TODO...
+            switch (_phase)
+            {
+                case TurnPhase.PayRent:
+                    if (!_pendingPlayers.Contains(player)) return;
+
+                    break;
+
+                case TurnPhase.Market:
+                    break;
+            }
+        }
+
+        public void PlayerBuyCard(Player player, int cardId)
+        {
+            switch (_phase)
+            {
+                case TurnPhase.Market:
+                    break;
+            }
+        }
+
+        public void PlayerConfirm(Player player)
+        {
+            switch (_phase)
+            {
+                case TurnPhase.PayRent:
+                    {
+                        if (!_pendingPlayers.Contains(player)) return;
+
+                        // TODO: Check that the player has put enough money for rent
+
+                        _pendingPlayers.Remove(player);
+
+                        var json = new JsonObject();
+                        json.Add("type", "playerDone");
+                        json.Add("username", player.Username);
+                        _room.BroadcastJson(json);
+
+                        if (_pendingPlayers.Count == 0) SetPhase(TurnPhase.MarketFadeIn);
+                    }
+                    break;
+
+                case TurnPhase.Market:
+                    {
+                        if (!_pendingPlayers.Contains(player)) return;
+                        _pendingPlayers.Remove(player);
+
+                        var json = new JsonObject();
+                        json.Add("type", "playerDone");
+                        json.Add("username", player.Username);
+                        _room.BroadcastJson(json);
+
+                        if (_pendingPlayers.Count == 0) SetPhase(TurnPhase.FadeOut);
+                    }
+                    break;
+            }
         }
 
         void SetPhase(TurnPhase phase)
@@ -181,13 +243,22 @@ namespace ColocDuty.InGame
             var json = new JsonObject();
             json.Add("type", "goInGamePhase");
             json.Add("phase", MakePhaseJson());
+            json.Add("pendingUsernames", MakePendingUsernamesJson());
             _room.BroadcastJson(json);
+        }
+
+        JsonArray MakePendingUsernamesJson()
+        {
+            var json = new JsonArray();
+            foreach (var player in _pendingPlayers) json.Add(player.Username);
+            return json;
         }
 
         public JsonObject MakeJson()
         {
             var json = new JsonObject();
             json.Add("phase", MakePhaseJson());
+            json.Add("pendingUsernames", MakePendingUsernamesJson());
 
             json.Add("mood", 12);
             json.Add("maxMood", 20);
@@ -207,11 +278,17 @@ namespace ColocDuty.InGame
             switch (_phase)
             {
                 case TurnPhase.PayRent:
-                    var jsonRentPendingPlayers = new JsonArray();
-                    foreach (var player in _rentPendingPlayers) jsonRentPendingPlayers.Add(player.Username);
-                    json.Add("rentPendingPlayers", jsonRentPendingPlayers);
-                    json.Add("amountDue", _rentAmount);
-                    break;
+                    {
+                        var jsonPendingPlayers = new JsonArray();
+                        json.Add("amountDue", _rentAmount);
+                        break;
+                    }
+
+                case TurnPhase.Market:
+                    {
+                        // TODO: Send market
+                        break;
+                    }
             }
 
             return json;

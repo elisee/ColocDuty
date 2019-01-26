@@ -278,7 +278,14 @@ namespace ColocDuty
                             return;
                         }
 
-                        game.UseCard(peer.Player, (int)jsonCardId);
+                        game.PlayerUseCard(peer.Player, (int)jsonCardId);
+                        break;
+
+                    case "confirm":
+                        if (peer.Player == null) { Kick(peer, "Can't use card without a player."); return; }
+                        if (game == null) return;
+
+                        game.PlayerConfirm(peer.Player);
                         break;
                 }
             }

@@ -93,10 +93,10 @@
   const bigCardWidth = 963;
   const bigCardHeight = 1267;
 
-  const playAreaBottom = 1500;
+  const handAreaHeight = 320;
+  const handAreaTop = refHeight - handAreaHeight;
 
-  const handAreaTop = 1600;
-  const handAreaHeight = refHeight - handAreaTop;
+  const confirmAreaHeight = 320;
 
   let drag = { target: null };
 
@@ -223,6 +223,32 @@
     const centerX = scaledWidth / 2;
     const centerY = refHeight / 2;
 
+    // Confirm area
+    const isPending = networkData.game.pendingUsernames.indexOf(networkData.selfPlayer.username) !== -1;
+    const willConfirm = drag.target === "confirm" && drag.willConfirm;
+
+    ctx.fillStyle = isPending ? (willConfirm ? "#0f0" : "#005") : "#66c";
+    ctx.fillRect(0, 0, scaledWidth, confirmAreaHeight);
+    ctx.font = "50px Open Sans";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillStyle = "#fff";
+    let confirmText = "...";
+
+    const { phase } = networkData.game;
+    switch (phase.name) {
+      case "PayRent":
+        
+        confirmText = isPending ? `Touch to pay rent: ${phase.amountDue}` : "Waiting for others to pay rent";
+        break;
+      case "Market":
+        confirmText = isPending ? "Touch to end turn" : "Waiting for turn to end";
+        break;
+    }
+ 
+    ctx.fillText(confirmText, scaledWidth / 2, confirmAreaHeight / 2);
+
     // Hand
     ctx.fillStyle = drag.target === "hand" ? "#005" : "#66c";
     ctx.fillRect(0, handAreaTop, scaledWidth, handAreaHeight);
@@ -259,8 +285,12 @@
 
       switch (drag.target) {
         case "hand":
-          if(drag.willPlayCard && drag.hoveredCard != null) {
+          if (drag.willPlayCard && drag.hoveredCard != null) {
             send({ type: "useCard", cardId: drag.hoveredCard.id });
+          }
+        case "confirm":
+          if (drag.willConfirm) {
+            send({ type: "confirm" });
           }
       }
 
@@ -272,16 +302,21 @@
     const y = touch.y / scale;
 
     if (touch.started) {
-      // if (y < marketAreaHeight)
       if (y > handAreaTop) drag = { target: "hand", willPlayCard: false };
+      else if (y < confirmAreaHeight) drag = { target: "confirm" };
     }
 
     if (drag == null) return;
     drag.x = x;
     drag.y = y;
 
+    const threshold = 100;
+
     if (drag.target === "hand") {
-      drag.willPlayCard = y < playAreaBottom;
+      drag.willPlayCard = y < handAreaTop - threshold;
+    }
+    else if (drag.target === "confirm") {
+      drag.willConfirm = y < confirmAreaHeight;
     }
   });
 }
