@@ -12,16 +12,35 @@
 <body>
   <h1>ColocDuty</h1>
 
-  <button class="createRoom">Create room</button>
+  <div class="start">
+    <h2>Start</h2>
+    <p>On your TV.</p>
+    <div><button>Start a room</button></div>
+  </div>
+
+  <div class="join">
+    <h2>Join</h2>
+    <p>Using your smartphone.</p>
+    <div class="code"><input type="text" autofocus minlength="4" maxlength="4"></div>
+    <div><button>Join this room</button></div>
+  </div>
 
   <script src="/utils.js"></script>
   <script>
-    $(".createRoom").addEventListener("click", (event) => {
+    $(".start button").addEventListener("click", (event) => {
       event.preventDefault();
 
       window.location = "/start";
-    })
-  </script>
+    });
+
+    $(".join button").addEventListener("click", (event) => {
+      event.preventDefault();
+      const code = $(".join .code input").value.toUpperCase();
+      if (code.length != 4) return;
+
+      window.location = "/play/" + code;
+    });
+</script>
 </body>
 
 </html>

@@ -13,5 +13,41 @@ body {
 }
 
 h1 {
+  font-size: 3em;
+  font-weight: bold;
+  padding: 1em;
+}
+
+h2 {
   font-size: 2em;
+  text-transform: uppercase;
+  margin-bottom: 0.5em;
+}
+
+.start {
+  padding: 1em;
+}
+
+button {
+  padding: 1em;
+}
+
+.join {
+  padding: 1em;
+}
+
+.join input {
+  padding: 0.25em;
+  text-align: center;
+  font-size: 2em;
+  width: 5em;
+  text-transform: uppercase;  
+}
+
+.join .code {
+  margin-bottom: 1em;
+}
+
+p { 
+  margin-bottom: 1em;
 }
