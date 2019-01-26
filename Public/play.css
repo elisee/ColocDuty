@@ -31,18 +31,16 @@ body > div, body > form {
   flex: 1;
 }
 
-.viewer .waiting {
-  text-align: center;
-}
-
-.viewer .gameUrl {
-  display: block;
-  font-size: 2em;
-}
-
-.viewer .inGame canvas {
+.viewer canvas {
+  position: absolute;
   width: 100%;
   height: 100%
+}
+
+.viewer .debug {
+  position: relative;
+  top: 60px;
+  left: 500px;
 }
 
 /* Player */

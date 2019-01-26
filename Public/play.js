@@ -64,8 +64,6 @@ function onSocketMessage(event) {
     case "helloViewer":
       hide($(".loading"));
       show($(".viewer"));
-      $(".gameUrl").textContent = window.location.host + "/play/" + roomCode;
-      $(".gameUrl").href = window.location.protocol + "//" + window.location.host + "/play/" + roomCode;
 
       gameData = json.gameData;
       applyViewerState();
@@ -90,7 +88,6 @@ function onSocketMessage(event) {
 
     case "addPlayer":
       gameData.players.push(json.data);
-      buildPlayerList();
       break;
 
     case "removePlayer":
@@ -100,7 +97,6 @@ function onSocketMessage(event) {
           break;
         }
       }
-      buildPlayerList();
       break;
 
     case "setState":
@@ -134,7 +130,7 @@ function animate(timestamp) {
   const ms = timestamp - previousTimestamp;
   previousTimestamp = timestamp;
 
-  if (!$(".viewer .inGame").hidden) animateViewerInGame(ms);
+  if (!$(".viewer").hidden) animateViewer(ms);
   if (!$(".player .waiting").hidden) animatePlayerWaiting(ms);
   if (!$(".player .inGame").hidden) animatePlayerInGame(ms);
 }
@@ -178,33 +174,20 @@ function setupCharacterSprites() {
 }
 
 // Viewer
-function buildPlayerList() {
-  const listElt = $(".viewer .players ul");
-  listElt.innerHTML = "";
-
-  for (const player of gameData.players) {
-    $make("li", listElt, { textContent: player.username });
-  }
+if (isViewer) {
+  $(".viewer .debug button").addEventListener("click", (event) => {
+    window.open(window.location.protocol + "//" + window.location.host + "/play/" + roomCode, '_blank');
+  })
 }
 
 function applyViewerState() {
-  setVisible($(".viewer .waiting"), gameData.state.name === "waiting");
-  setVisible($(".viewer .inGame"), gameData.state.name === "inGame");
-
-  switch (gameData.state.name) {
-    case "waiting":
-      buildPlayerList();
-      break;
-
-    case "inGame":
-      break;
-  }
+  setVisible($(".viewer .debug"), gameData.state.name == "waiting")
 }
 
-const viewerCanvas = $(".viewer .inGame canvas");
+const viewerCanvas = $(".viewer canvas");
 const viewerContext = viewerCanvas.getContext("2d");
 
-function animateViewerInGame(ms) {
+function animateViewer(ms) {
   tickSprites(characterSprites, ms);
 
   const canvas = viewerCanvas;
@@ -219,6 +202,17 @@ function animateViewerInGame(ms) {
 
   const backgroundImage = images[`/Assets/Background.jpg`];
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
+  if (gameData.state.name == "waiting") {
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+
+    ctx.font = "40px Montserrat";
+    ctx.fillText(`Join the game with the code:`, canvas.width / 2, canvas.height / 2)
+
+    ctx.font = "50px Montserrat";
+    ctx.fillText(roomCode, canvas.width / 2, canvas.height / 2 + 60);
+  }
 
   const screenCharSize = charSize * 0.8;
   const screenCharPadding = screenCharSize + 30;
