@@ -16,24 +16,59 @@ function removeFromList(list, item) {
   list.splice(list.indexOf(item), 1);
 }
 
+// Loading
+const imageUrls = [];
+const images = {};
+
+function loadImages(callback) {
+  let imageQueue = imageUrls.length;
+
+  for (const url of imageUrls) {
+    const image = new Image();
+    image.src = url;
+    image.addEventListener("load", () => {
+      images[url] = image;
+      imageQueue--;
+      if (imageQueue === 0) callback();
+    });
+  }
+}
+
+const characterCount = 6;
+
+for (let i = 0; i < characterCount; i++) {
+  imageUrls.push(`/assets/characters/${characterCount}.png`);
+}
+
+loadImages(() => {
+  connect();
+});
+
 // Socket
 const isViewer = window.location.pathname.startsWith("/view/");
 const roomCode = window.location.pathname.substring("/play/".length);
-const socket = new WebSocket("ws://" + window.location.host + "/room/" + roomCode);
+let socket = null;
+
+function connect() {
+  socket = new WebSocket("ws://" + window.location.host + "/room/" + roomCode);
+  socket.addEventListener("open", onSocketOpen);
+  socket.addEventListener("message", onSocketMessage);
+  socket.addEventListener("close", onSocketClose);
+}
 
 function send(json) { socket.send(JSON.stringify(json)); }
 
-socket.addEventListener("open", (event) => {
+function onSocketOpen(event) {
   if (isViewer) send({ type: "hello", viewerMode: true });
   else {
     const guid = window.localStorage.getItem("colocGuid");
     send({ type: "hello", guid });
   }
-});
+}
 
 let gameData = null;
 
-socket.addEventListener("message", (event) => {
+function onSocketMessage(event) {
   const json = JSON.parse(event.data);
 
   switch (json.type) {
@@ -62,6 +97,11 @@ socket.addEventListener("message", (event) => {
     case "plzJoin":
       hide($(".loading"));
       show($(".join"));
+
+      for (let i = 0; i < characterCount; i++) {
+        $make("img", characterSelectorElt, { src: `/assets/characters/${characterCount}.png` });
+      }
+      
       $(".join .username").focus();
       break;
 
@@ -81,16 +121,27 @@ socket.addEventListener("message", (event) => {
       else applyPlayerState();
       break;
   }
-});
+}
 
-socket.addEventListener("close", (event) => {
+function onSocketClose(event) {
   hide($(".join"));
   hide($(".viewer"));
   hide($(".player"));
   hide($(".loading"));
   show($(".disconnected"));
   $(".disconnected .reason").textContent = event.reason;
-});
+}
+
+// Animate
+function animate() {
+  requestAnimationFrame(animate);
+
+  if (!$(".join").hidden) animateCharacterSelect();
+  if (!$(".viewer .inGame").hidden) animateViewerInGame();
+  if (!$(".player .inGame").hidden) animatePlayerInGame();
+}
+
+animate();
 
 // Join
 $(".join").addEventListener("submit", (event) => {
@@ -100,6 +151,19 @@ $(".join").addEventListener("submit", (event) => {
   show($(".loading"));
   send({ "type": "joinAsPlayer", "username": $(".join .username").value });
 });
+
+const charSelectorCanvas = $(".join .characterSelector");
+const charSelectorCtx = charSelectorCanvas.getContext("2d");
+
+function animateCharacterSelect() {
+  charSelectorCtx.fillStyle = "#f00";
+  charSelectorCtx.fillRect(0, 0, charSelectorCanvas.width, charSelectorCanvas.height);
+
+  for (let i = 0; i < characterCount; i++) {
+    const image = images[`/assets/characters/${characterCount}.png`];
+    charSelectorCtx.drawImage(image, i * 256, 0);
+  }
+}
 
 // Viewer
 function buildPlayerList() {
@@ -125,6 +189,10 @@ function applyViewerState() {
   }
 }
 
+function animateViewerInGame() {
+
+}
+
 // Player
 $(".player .waiting").addEventListener("submit", (event) => {
   event.preventDefault();
@@ -135,4 +203,8 @@ $(".player .waiting").addEventListener("submit", (event) => {
 function applyPlayerState() {
   setVisible($(".player .waiting"), gameData.state.name === "waiting");
   setVisible($(".player .inGame"), gameData.state.name === "inGame");
+}
+
+function animatePlayerInGame() {
+
 }
