@@ -62,9 +62,9 @@ namespace ColocDuty
                 return code;
             }
 
-            string playHtml = "";
-            void LoadPlayHtml() => playHtml = File.ReadAllText(Path.Combine(publicPath, "play.html"));
-            LoadPlayHtml();
+            string gameHtml = "";
+            void LoadGameHtml() => gameHtml = File.ReadAllText(Path.Combine(publicPath, "game.html"));
+            LoadGameHtml();
 
             builder.Configure((app) =>
             {
@@ -119,10 +119,10 @@ namespace ColocDuty
 
 
 #if DEBUG
-                        LoadPlayHtml();
+                        LoadGameHtml();
 #endif
 
-                        return context.Response.WriteAsync(playHtml);
+                        return context.Response.WriteAsync(gameHtml);
                     });
 
                     router.MapGet("play/{code}", context =>
@@ -130,10 +130,10 @@ namespace ColocDuty
                         var roomCode = context.GetRouteValue("code");
 
 #if DEBUG
-                        LoadPlayHtml();
+                        LoadGameHtml();
 #endif
 
-                        return context.Response.WriteAsync(playHtml);
+                        return context.Response.WriteAsync(gameHtml);
                     });
                 });
 

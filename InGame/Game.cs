@@ -50,10 +50,9 @@ namespace ColocDuty.InGame
             }
         }
 
-        public JsonObject MakeStateJson()
+        public JsonObject MakeJson()
         {
             var json = new JsonObject();
-            json.Add("name", "inGame");
             json.Add("phase", _phase.ToString());
 
             var jsonPlayerStates = new JsonObject();

@@ -1,6 +1,6 @@
 {
   window.engine.applyViewerState = () => {
-    setVisible($(".viewer .debug"), gameData.state.name == "waiting");
+    setVisible($(".viewer .debug"), networkData.game == null);
   };
 
   const targetWidth = 1920;
@@ -27,7 +27,7 @@
   };
 
   function drawStateInformations() {
-    if (gameData.state.name == "waiting") {
+    if (networkData.game == null) {
       ctx.fillStyle = "#fff";
       ctx.textAlign = "center";
 
@@ -41,7 +41,7 @@
       ctx.textAlign = "center";
 
       ctx.font = "40px Montserrat";
-      ctx.fillText(gameData.state.phase, canvas.width / 2, canvas.height / 2);
+      ctx.fillText(networkData.game.phase, canvas.width / 2, canvas.height / 2);
     }
   }
 
@@ -49,8 +49,8 @@
     const screenCharSize = charSize * 0.8;
     const screenCharPadding = screenCharSize + 30;
 
-    for (let i = 0; i < gameData.players.length; i++) {
-      const player = gameData.players[i];
+    for (let i = 0; i < networkData.players.length; i++) {
+      const player = networkData.players[i];
       drawSprite(ctx, characterSprites[player.characterIndex], 0, i * screenCharPadding, screenCharSize, screenCharSize);
 
       ctx.font = "30px Montserrat";
@@ -59,11 +59,11 @@
       ctx.fillText(player.username, 0.5 * screenCharSize, i * screenCharPadding + 35);
 
       // Draw player's hidden hand
-      if (gameData.state.name !== "waiting") {
+      if (networkData.game != null) {
         const cardBackImage = images[`/Assets/Cards/Back.jpg`];
         const cardBackScale = 40;
 
-        const { handCardCount } = gameData.state.playerStates[player.username];
+        const { handCardCount } = networkData.game.playerStates[player.username];
         for (let j = 0; j < handCardCount; j++) {
           const x = screenCharSize / 2 + (j - handCardCount / 2) * cardBackImage.width / cardBackScale;
           const y = i * screenCharPadding + screenCharSize * 0.8;

@@ -123,26 +123,11 @@ namespace ColocDuty
             var peers = new List<Peer>();
             Game game = null;
 
-            JsonObject MakeGameJson()
+            JsonArray MakePlayersJson()
             {
-                var jsonData = new JsonObject();
-
                 var jsonPlayers = new JsonArray();
-                jsonData.Add("players", jsonPlayers);
                 foreach (var player in Players.Values) jsonPlayers.Add(player.MakePublicJson());
-
-                jsonData.Add("state", MakeStateJson());
-
-                return jsonData;
-            }
-
-            JsonObject MakeStateJson()
-            {
-                if (game != null) return game.MakeStateJson();
-
-                var jsonState = new JsonObject();
-                jsonState.Add("name", "waiting");
-                return jsonState;
+                return jsonPlayers;
             }
 
             void Kick(Peer peer, string reason)
@@ -163,8 +148,9 @@ namespace ColocDuty
                             _activePeers.Add(peer);
 
                             var outJson = new JsonObject();
-                            outJson.Add("type", "helloViewer");
-                            outJson.Add("gameData", MakeGameJson());
+                            outJson.Add("type", "hello");
+                            outJson.Add("players", MakePlayersJson());
+                            if (game != null) outJson.Add("game", game.MakeJson());
                             SendJson(peer, outJson);
                             return;
                         }
@@ -179,11 +165,12 @@ namespace ColocDuty
                                 foundPlayer.Peer = peer;
 
                                 var outJson = new JsonObject();
-                                outJson.Add("type", "helloPlayer");
-                                outJson.Add("selfData", peer.Player.MakeSelfJson());
-                                if (game != null) outJson.Add("selfState", game.PlayerStates[peer.Player].MakeSelfJson());
+                                outJson.Add("type", "hello");
+                                outJson.Add("players", MakePlayersJson());
+                                if (game != null) outJson.Add("game", game.MakeJson());
+                                outJson.Add("selfPlayer", peer.Player.MakeSelfJson());
+                                if (game != null) outJson.Add("selfGame", game.PlayerStates[peer.Player].MakeSelfJson());
 
-                                outJson.Add("gameData", MakeGameJson());
                                 SendJson(peer, outJson);
                                 _activePeers.Add(peer);
                                 return;
@@ -192,7 +179,7 @@ namespace ColocDuty
 
                         {
                             var outJson = new JsonObject();
-                            outJson.Add("type", "plzJoin");
+                            outJson.Add("type", "whoDis");
                             SendJson(peer, outJson);
                         }
 
@@ -239,9 +226,9 @@ namespace ColocDuty
 
                         {
                             var outJson = new JsonObject();
-                            outJson.Add("type", "helloPlayer");
-                            outJson.Add("selfData", peer.Player.MakeSelfJson());
-                            outJson.Add("gameData", MakeGameJson());
+                            outJson.Add("type", "hello");
+                            outJson.Add("players", MakePlayersJson());
+                            outJson.Add("selfPlayer", peer.Player.MakeSelfJson());
                             SendJson(peer, outJson);
                             _activePeers.Add(peer);
                         }
@@ -249,7 +236,7 @@ namespace ColocDuty
                         {
                             var broadcastJson = new JsonObject();
                             broadcastJson.Add("type", "addPlayer");
-                            broadcastJson.Add("data", peer.Player.MakePublicJson());
+                            broadcastJson.Add("player", peer.Player.MakePublicJson());
                             BroadcastJson(broadcastJson);
                         }
                         break;
@@ -263,14 +250,14 @@ namespace ColocDuty
 
                         game = new Game(this);
 
-                        var jsonState = MakeStateJson();
+                        var jsonGameState = game.MakeJson();
 
                         foreach (var activePeer in _activePeers)
                         {
                             var json = new JsonObject();
-                            json.Add("type", "setState");
-                            json.Add("state", jsonState);
-                            if (activePeer.Player != null) json.Add("selfState", game.PlayerStates[activePeer.Player].MakeSelfJson());
+                            json.Add("type", "goInGame");
+                            json.Add("game", jsonGameState);
+                            if (activePeer.Player != null) json.Add("selfGame", game.PlayerStates[activePeer.Player].MakeSelfJson());
 
                             SendJson(activePeer, json);
                         }

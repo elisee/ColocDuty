@@ -1,134 +1,7 @@
-window.setup = {
-  isViewer: window.location.pathname.startsWith("/view/"),
-  roomCode: window.location.pathname.substring("/play/".length)
-};
-
-// Temporary debug button for quick testing
-if (setup.isViewer) {
-  $(".viewer .debug button").addEventListener("click", (event) => {
-    window.open(window.location.protocol + "//" + window.location.host + "/play/" + setup.roomCode, '_blank');
-  })
-}
-
-loadImages(() => {
-  setupCharacterSprites();
-
-  connect();
-});
-
-// Socket
-let socket = null;
-
-function connect() {
-  socket = new WebSocket("ws://" + window.location.host + "/room/" + setup.roomCode);
-  socket.addEventListener("open", onSocketOpen);
-  socket.addEventListener("message", onSocketMessage);
-  socket.addEventListener("close", onSocketClose);
-}
-
-function send(json) { socket.send(JSON.stringify(json)); }
-
-function onSocketOpen(event) {
-  if (setup.isViewer) send({ type: "hello", viewerMode: true });
-  else {
-    const guid = window.localStorage.getItem("colocGuid");
-    send({ type: "hello", guid });
-  }
-}
-
-let gameData = null;
-let selfData = null;
-let selfState = null;
-
-function onSocketMessage(event) {
-  const json = JSON.parse(event.data);
-
-  switch (json.type) {
-    case "helloViewer":
-      hide($(".loading"));
-      show($(".viewer"));
-
-      gameData = json.gameData;
-      engine.applyViewerState();
-      break;
-
-    case "helloPlayer":
-      window.localStorage.setItem("colocGuid", json.selfData.guid);
-      hide($(".loading"));
-      show($(".player"));
-
-      gameData = json.gameData;
-      selfData = json.selfData;
-      selfState = json.selfState;
-      applyPlayerState();
-      break;
-
-    case "plzJoin":
-      hide($(".loading"));
-      show($(".player"));
-      show($(".player .waiting"));
-      $(".player .waiting .username").focus();
-      break;
-
-    case "addPlayer":
-      gameData.players.push(json.data);
-      break;
-
-    case "removePlayer":
-      for (const player of gameData.players) {
-        if (player.username === json.username) {
-          removeFromList(gameData.players, player);
-          break;
-        }
-      }
-      break;
-
-    case "setState":
-      gameData.state = json.state;
-      window.selfState = json.selfState;
-      if (setup.isViewer) engine.applyViewerState();
-      else applyPlayerState();
-      break;
-
-    case "setTurnPhase":
-      gameData.state.phase = json.phase;
-      if (setup.isViewer) engine.applyViewerState();
-      else applyPlayerState();
-      break;
-  }
-}
-
-function onSocketClose(event) {
-  hide($(".viewer"));
-  hide($(".player"));
-  hide($(".loading"));
-  show($(".disconnected"));
-  $(".disconnected .reason").textContent = event.reason;
-}
-
-// Animate
-let previousTimestamp = 0;
-
-function animate(timestamp) {
-  requestAnimationFrame(animate);
-
-  const ms = timestamp - previousTimestamp;
-  previousTimestamp = timestamp;
-
-  if (!$(".viewer").hidden) engine.animateViewer(ms);
-  if (!$(".player .waiting").hidden) animatePlayerWaiting(ms);
-  if (!$(".player .inGame").hidden) animatePlayerInGame(ms);
-}
-
-animate(0);
-
-// Player
 let isReady = false;
 
 const charSelectorCanvas = $(".player .waiting .characterSelector");
 const charSelectorContext = charSelectorCanvas.getContext("2d");
-
-const charSize = 256;
 
 const charSelector = {
   offset: 0,
@@ -200,10 +73,10 @@ waitingButtonElt.addEventListener("click", (event) => {
   }
 });
 
-function applyPlayerState() {
-  setVisible($(".player .waiting"), gameData.state.name === "waiting");
-  setVisible($(".player .inGame"), gameData.state.name === "inGame");
-}
+window.engine.applyPlayerState = () => {
+  setVisible($(".player .waiting"), networkData.game == null);
+  setVisible($(".player .inGame"), networkData.game != null);
+};
 
 const playerCanvas = $(".player .inGame canvas");
 const playerContext = playerCanvas.getContext("2d");
@@ -238,14 +111,14 @@ function animatePlayerInGame() {
   const cardThumbWidth = 192;
   const cardThumbHeight = 243;
   const cardThumbSpace = 16;
-  const cardCount = selfState.hand.length;
+  const cardCount = networkData.selfGame.hand.length;
 
   ctx.save();
   ctx.fillStyle = "#f0c";
   ctx.translate(-(cardCount * cardThumbWidth + (cardCount - 1) * cardThumbSpace) / 2, 600);
 
-  for (let i = 0; i < selfState.hand.length; i++) {
-    const card = selfState.hand[i];
+  for (let i = 0; i < networkData.selfGame.hand.length; i++) {
+    const card = networkData.selfGame.hand[i];
     ctx.fillRect(i * (cardThumbWidth + cardThumbSpace), 0, cardThumbWidth, cardThumbHeight);
   }
 
