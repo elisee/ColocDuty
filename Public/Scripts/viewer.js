@@ -89,7 +89,23 @@
       0, refHeight - moodBarFull.height / 2, moodBarFull.width / 2 * moodValue, moodBarFull.height / 2);
 
     const hygieneBarEmpty = images["/Assets/Viewer/HygieneBarEmpty.png"];
+    const hygieneBarFull = images["/Assets/Viewer/HygieneBarFull.png"];
     drawImageHalf(ctx, hygieneBarEmpty, scaledWidth - hygieneBarEmpty.width / 2, refHeight - hygieneBarEmpty.height / 2);
+
+    const hygieneValue = networkData.game.hygiene / networkData.game.maxHygiene;
+    ctx.drawImage(hygieneBarFull,
+      0, 0,
+      hygieneBarFull.width * hygieneValue, hygieneBarFull.height,
+      scaledWidth - hygieneBarEmpty.width / 2 * hygieneValue, refHeight - hygieneBarFull.height / 2,
+      hygieneBarFull.width / 2 * hygieneValue, hygieneBarFull.height / 2);
+
+      ctx.textBaseline = "bottom";
+      ctx.fillStyle = "#111";
+      ctx.font = "900 40px Montserrat";
+      ctx.textAlign = "left";
+      ctx.fillText("Mood", 20, refHeight - 10);
+      ctx.textAlign = "right";
+      ctx.fillText("Hygiene", scaledWidth - 20, refHeight - 10);
   }
 
   function drawPlayers() {
