@@ -14,7 +14,7 @@ window.setVisible = (elt, visible) => elt.hidden = !visible;
 
 window.removeFromList = (list, item) => {
   list.splice(list.indexOf(item), 1);
-}
+};
 
 // Touch
 window.touch = (elt, callback) => {

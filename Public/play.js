@@ -187,6 +187,7 @@ const charSelector = {
   sprites: [],
   offset: 0,
   dragStart: null,
+  selected: 0
 };
 
 touch(charSelectorCanvas, (touch) => {
@@ -212,11 +213,14 @@ function animatePlayerWaiting(ms) {
   tickSprites(charSelector.sprites, ms);
 
   if (charSelector.dragStart == null) {
-    const closest = clamp(Math.round(charSelector.offset / charSize), 0, characterCount - 1) * charSize;
+    charSelector.selected = clamp(Math.round(charSelector.offset / charSize), 0, characterCount - 1);
+    const closest = charSelector.selected * charSize;
     charSelector.offset = lerp(charSelector.offset, closest, 0.15);
   }
 
   const canvas = charSelectorCanvas;
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
   const ctx = charSelectorContext;
 
   ctx.fillStyle = "#c55";
@@ -225,8 +229,14 @@ function animatePlayerWaiting(ms) {
   ctx.save();
   ctx.translate(canvas.width / 2 - charSize / 2, 0);
 
-  for (let i = 0; i < characterCount; i++) {
-    drawSprite(ctx, charSelector.sprites[i], i * charSize - charSelector.offset, i);
+  if (isReady) {
+    drawSprite(ctx, charSelector.sprites[charSelector.selected], 0, 0);
+  } else {
+    for (let i = 0; i < characterCount; i++) {
+      ctx.fillStyle = i % 2 == 0 ? "#aaa" : "#bbb";
+      ctx.fillRect(i * charSize - charSelector.offset, 0, charSize, charSize);
+      drawSprite(ctx, charSelector.sprites[i], i * charSize - charSelector.offset, 0);
+    }
   }
 
   ctx.restore();
@@ -235,11 +245,17 @@ function animatePlayerWaiting(ms) {
 const waitingButtonElt = $(".player .waiting button");
 
 waitingButtonElt.addEventListener("click", (event) => {
+  event.preventDefault();
+
   if (!isReady) {
+    const username = $(".player .waiting .username").value;
+    if (username.length < 2) return;
+
     isReady = true;
     $(".player .waiting .username").disabled = true;
     waitingButtonElt.textContent = "Start!";
-    send({ "type": "joinAsPlayer", "username": $(".player .waiting .username").value });
+    waitingButtonElt.classList.add("start");
+    send({ "type": "joinAsPlayer", username });
   } else {
     send({ type: "start" });
   }
