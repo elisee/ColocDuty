@@ -1,7 +1,7 @@
-window.images = {};
+images = {};
 
-window.characterCount = 7;
-window.characterSprites = [];
+characterCount = 7;
+characterSprites = [];
 
 const imageUrls = [];
 
@@ -12,7 +12,7 @@ for (let i = 0; i < characterCount; i++) {
   imageUrls.push(`/Assets/Characters/${i}-Idle.png`);
 }
 
-window.loadImages = (callback) => {
+function loadImages(callback) {
   let imageQueue = imageUrls.length;
 
   for (const url of imageUrls) {
@@ -24,11 +24,11 @@ window.loadImages = (callback) => {
       if (imageQueue === 0) callback();
     });
   }
-};
+}
 
-window.setupCharacterSprites = () => {
+function setupCharacterSprites() {
   for (let i = 0; i < characterCount; i++) {
     const image = images[`/Assets/Characters/${i}-Idle.png`];
     characterSprites.push(makeSprite(image, charSize, charSize, 12, 12));
   }
-};
+}

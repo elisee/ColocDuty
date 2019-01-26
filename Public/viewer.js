@@ -1,73 +1,79 @@
-window.applyViewerState = () => {
-  setVisible($(".viewer .debug"), gameData.state.name == "waiting");
-};
+{
+  window.engine.applyViewerState = () => {
+    setVisible($(".viewer .debug"), gameData.state.name == "waiting");
+  };
 
-const canvas = $(".viewer canvas");
-const ctx = canvas.getContext("2d");
+  const targetWidth = 1920;
+  const targetHeight = 1080;
 
-window.animateViewer = (ms) => {
-  tickSprites(characterSprites, ms);
+  const canvas = $(".viewer canvas");
+  const ctx = canvas.getContext("2d");
 
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
+  window.engine.animateViewer = (ms) => {
+    tickSprites(characterSprites, ms);
 
-  ctx.save();
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
 
-  const backgroundImage = images[`/Assets/Background.jpg`];
-  ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+    ctx.save();
 
-  drawStateInformations();
-  drawPlayers();
+    const backgroundImage = images[`/Assets/Background.jpg`];
+    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
 
-  ctx.restore();
-}
+    drawStateInformations();
+    drawPlayers();
 
-function drawStateInformations() {
-  if (gameData.state.name == "waiting") {
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
+    ctx.restore();
+  };
 
-    ctx.font = "40px Montserrat";
-    ctx.fillText(`Join the game with the code:`, canvas.width / 2, canvas.height / 2);
+  function drawStateInformations() {
+    if (gameData.state.name == "waiting") {
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
 
-    ctx.font = "50px Montserrat";
-    ctx.fillText(setup.roomCode, canvas.width / 2, canvas.height / 2 + 60);
-  } else {
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
+      ctx.font = "40px Montserrat";
+      ctx.fillText(`Join the game with the code:`, canvas.width / 2, canvas.height / 2);
 
-    ctx.font = "40px Montserrat";
-    ctx.fillText(gameData.state.phase, canvas.width / 2, canvas.height / 2);
+      ctx.font = "50px Montserrat";
+      ctx.fillText(setup.roomCode, canvas.width / 2, canvas.height / 2 + 60);
+    } else {
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+
+      ctx.font = "40px Montserrat";
+      ctx.fillText(gameData.state.phase, canvas.width / 2, canvas.height / 2);
+    }
   }
-}
 
-function drawPlayers() {
-  const screenCharSize = charSize * 0.8;
-  const screenCharPadding = screenCharSize + 30;
+  function drawPlayers() {
+    const screenCharSize = charSize * 0.8;
+    const screenCharPadding = screenCharSize + 30;
 
-  for (let i = 0; i < gameData.players.length; i++) {
-    const player = gameData.players[i];
-    drawSprite(ctx, characterSprites[player.characterIndex], 0, i * screenCharPadding, screenCharSize, screenCharSize);
+    for (let i = 0; i < gameData.players.length; i++) {
+      const player = gameData.players[i];
+      drawSprite(ctx, characterSprites[player.characterIndex], 0, i * screenCharPadding, screenCharSize, screenCharSize);
 
-    ctx.font = "30px Montserrat";
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-    ctx.fillText(player.username, 0.5 * screenCharSize, i * screenCharPadding + 35);
+      ctx.font = "30px Montserrat";
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.fillText(player.username, 0.5 * screenCharSize, i * screenCharPadding + 35);
 
-    // Draw player's hidden hand
-    if (gameData.state.name !== "waiting") {
-      const cardBackImage = images[`/Assets/Cards/Back.jpg`];
-      const cardBackScale = 40;
+      // Draw player's hidden hand
+      if (gameData.state.name !== "waiting") {
+        const cardBackImage = images[`/Assets/Cards/Back.jpg`];
+        const cardBackScale = 40;
 
-      const { handCardCount } = gameData.state.playerStates[player.username];
-      for (let j = 0; j < handCardCount; j++) {
-        const x = screenCharSize / 2 + (j - handCardCount / 2) * cardBackImage.width / cardBackScale;
-        const y = i * screenCharPadding + screenCharSize * 0.8;
+        const { handCardCount } = gameData.state.playerStates[player.username];
+        for (let j = 0; j < handCardCount; j++) {
+          const x = screenCharSize / 2 + (j - handCardCount / 2) * cardBackImage.width / cardBackScale;
+          const y = i * screenCharPadding + screenCharSize * 0.8;
 
-        ctx.drawImage(
-          cardBackImage, 0, 0, cardBackImage.width, cardBackImage.height,
-          x, y, cardBackImage.width / cardBackScale, cardBackImage.height / cardBackScale);
+          ctx.drawImage(
+            cardBackImage, 0, 0, cardBackImage.width, cardBackImage.height,
+            x, y, cardBackImage.width / cardBackScale, cardBackImage.height / cardBackScale);
+          }
         }
-      }
+    }
   }
 }
+

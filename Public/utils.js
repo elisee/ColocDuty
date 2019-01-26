@@ -1,23 +1,25 @@
-window.$ = document.querySelector.bind(document);
-window.$$ = document.querySelectorAll.bind(document);
+window.engine = {};
 
-window.$make = (tagName, parent, props) => {
+const $ = document.querySelector.bind(document);
+const $$ = document.querySelectorAll.bind(document);
+
+function $make(tagName, parent, props) {
   const elt = document.createElement(tagName);
   if (parent != null) parent.appendChild(elt);
   for (const key in props) elt[key] = props[key];
   return elt;
 }
 
-window.show = (elt) => elt.hidden = false;
-window.hide = (elt) => elt.hidden = true;
-window.setVisible = (elt, visible) => elt.hidden = !visible;
+function show(elt) { elt.hidden = false }
+function hide(elt) { elt.hidden = true }
+function setVisible(elt, visible) { elt.hidden = !visible }
 
-window.removeFromList = (list, item) => {
+function removeFromList(list, item) {
   list.splice(list.indexOf(item), 1);
-};
+}
 
 // Touch
-window.touch = (elt, callback) => {
+function touch(elt, callback) {
   let touchId = null;
   let isMouseDown = false;
 

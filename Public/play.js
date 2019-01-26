@@ -36,9 +36,9 @@ function onSocketOpen(event) {
   }
 }
 
-window.gameData = null;
-window.selfData = null;
-window.selfState = null;
+let gameData = null;
+let selfData = null;
+let selfState = null;
 
 function onSocketMessage(event) {
   const json = JSON.parse(event.data);
@@ -49,7 +49,7 @@ function onSocketMessage(event) {
       show($(".viewer"));
 
       gameData = json.gameData;
-      applyViewerState();
+      engine.applyViewerState();
       break;
 
     case "helloPlayer":
@@ -86,13 +86,13 @@ function onSocketMessage(event) {
     case "setState":
       gameData.state = json.state;
       window.selfState = json.selfState;
-      if (setup.isViewer) applyViewerState();
+      if (setup.isViewer) engine.applyViewerState();
       else applyPlayerState();
       break;
 
     case "setTurnPhase":
       gameData.state.phase = json.phase;
-      if (setup.isViewer) applyViewerState();
+      if (setup.isViewer) engine.applyViewerState();
       else applyPlayerState();
       break;
   }
@@ -115,7 +115,7 @@ function animate(timestamp) {
   const ms = timestamp - previousTimestamp;
   previousTimestamp = timestamp;
 
-  if (!$(".viewer").hidden) animateViewer(ms);
+  if (!$(".viewer").hidden) engine.animateViewer(ms);
   if (!$(".player .waiting").hidden) animatePlayerWaiting(ms);
   if (!$(".player .inGame").hidden) animatePlayerInGame(ms);
 }
