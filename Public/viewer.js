@@ -54,17 +54,20 @@ function drawPlayers() {
     ctx.textAlign = "center";
     ctx.fillText(player.username, 0.5 * screenCharSize, i * screenCharPadding + 35);
 
-    const cardBackImage = images[`/Assets/Cards/Back.jpg`];
-    const cardBackScale = 40;
+    // Draw player's hidden hand
+    if (gameData.state.name !== "waiting") {
+      const cardBackImage = images[`/Assets/Cards/Back.jpg`];
+      const cardBackScale = 40;
 
-    const { handCardCount } = gameData.state.playerStates[player.username];
-    for (let j = 0; j < handCardCount; j++) {
-      const x = screenCharSize / 2 + (j - handCardCount / 2) * cardBackImage.width / cardBackScale;
-      const y = i * screenCharPadding + screenCharSize * 0.8;
+      const { handCardCount } = gameData.state.playerStates[player.username];
+      for (let j = 0; j < handCardCount; j++) {
+        const x = screenCharSize / 2 + (j - handCardCount / 2) * cardBackImage.width / cardBackScale;
+        const y = i * screenCharPadding + screenCharSize * 0.8;
 
-      ctx.drawImage(
-        cardBackImage, 0, 0, cardBackImage.width, cardBackImage.height,
-        x, y, cardBackImage.width / cardBackScale, cardBackImage.height / cardBackScale);
-    }
+        ctx.drawImage(
+          cardBackImage, 0, 0, cardBackImage.width, cardBackImage.height,
+          x, y, cardBackImage.width / cardBackScale, cardBackImage.height / cardBackScale);
+        }
+      }
   }
 }
