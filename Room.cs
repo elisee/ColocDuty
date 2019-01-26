@@ -13,6 +13,9 @@ namespace ColocDuty
 {
     class Room
     {
+        public const int MinPlayers = 2;
+        public const int MaxPlayers = 6;
+
         enum NetworkOutEventType { SendToPeer, KickPeer, End }
 
         class NetworkOutEvent
@@ -197,6 +200,7 @@ namespace ColocDuty
                     case "joinAsPlayer":
                         if (peer.IsViewer) { Kick(peer, "Peer was setup as viewer."); return; }
                         if (peer.Player != null) { Kick(peer, "Player already setup."); return; }
+                        if (players.Count >= MaxPlayers) { Kick(peer, "Max players reached."); return; }
 
                         if (!inJson.TryGetValue("username", out var jsonUsername) ||
                             jsonUsername == null ||
@@ -250,7 +254,10 @@ namespace ColocDuty
 
                     case "start":
                         if (peer.Player == null) { Kick(peer, "Can't start without a player."); return; }
-                        if (players.Count < 2) { /* Ignored */ return; }
+#if !DEBUG
+                        if (players.Count < MinPlayers) { /* Ignored */ return; }
+#endif
+                        if (game != null) return;
 
                         game = new Game();
 
