@@ -1,4 +1,5 @@
-﻿using Microsoft.Collections.Extensions;
+﻿using ColocDuty.InGame;
+using Microsoft.Collections.Extensions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -259,7 +260,7 @@ namespace ColocDuty
 #endif
                         if (game != null) return;
 
-                        game = new Game();
+                        game = new Game(new List<Player>(players.Values));
 
                         {
                             var broadcastJson = new JsonObject();

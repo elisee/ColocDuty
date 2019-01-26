@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Json;
 using System.Text;
 
-namespace ColocDuty
+namespace ColocDuty.InGame
 {
-    class Game
+    class Card
     {
-        public JsonObject MakeStateJson()
+        public string Name;
+
+        public JsonObject MakeJson()
         {
             var json = new JsonObject();
-            json.Add("name", "inGame");
-
+            json.Add("name", Name);
             return json;
         }
     }
