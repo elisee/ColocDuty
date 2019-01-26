@@ -17,26 +17,6 @@ const cardTypeSettings = {
   "Mood": { color: "#ffd45e" },
 };
 
-imageUrls.push(`/Assets/Background.jpg`);
-
-imageUrls.push(`/Assets/Cards/Back.jpg`);
-
-var cardTypes = Object.keys(cardTypeSettings);
-for (let i = 0; i < cardTypes.length; i++) {
-  imageUrls.push(`/Assets/Cards/${cardTypes[i]}.png`);
-}
-
-// TODO: Preload all cards, based on input from the server
-imageUrls.push(`/Assets/Cards/Job/Cobaye Bebop.png`);
-
-imageUrls.push(`/Assets/CharacterFrame.png`);
-
-imageUrls.push(`/Assets/BillIcon.png`);
-
-for (let i = 0; i < characterCount; i++) {
-  imageUrls.push(`/Assets/Characters/${i}-Idle.png`);
-}
-
 function loadImages(callback) {
   let imageQueue = imageUrls.length;
 

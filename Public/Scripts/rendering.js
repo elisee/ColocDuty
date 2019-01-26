@@ -25,6 +25,11 @@ function drawSprite(ctx, sprite, x, y, destWidth, destHeight) {
   ctx.drawImage(sprite.image, column * sprite.width, row * sprite.height, sprite.width, sprite.height, x, y, destWidth, destHeight);
 }
 
-function drawFrame(ctx, image, index, x, y) {
-  ctx.drawImage(image, index * image.height, 0, image.height, image.height, x, y, image.height, image.height);
+function drawFrame(ctx, image, index, x, y, destSize) {
+  if (destSize == null) destSize = image.height;
+  ctx.drawImage(image, index * image.height, 0, image.height, image.height, x, y, destSize, destSize);
+}
+
+function drawImageHalf(ctx, image, x, y) {
+  ctx.drawImage(image, 0, 0, image.width, image.height, x, y, image.width / 2, image.height / 2);
 }

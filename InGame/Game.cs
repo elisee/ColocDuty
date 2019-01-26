@@ -91,6 +91,7 @@ namespace ColocDuty.InGame
 
         #region Pay rent Phase
         readonly List<Player> _rentPendingPlayers = new List<Player>();
+        int _rentAmount = 100;
         #endregion
 
         #region Market Phase
@@ -119,38 +120,6 @@ namespace ColocDuty.InGame
                     playerState.Hand.Add(Cards[random.Next(Cards.Count)]);
                 }
             }
-        }
-
-        public JsonObject MakeJson()
-        {
-            var json = new JsonObject();
-            json.Add("phase", MakePhaseJson());
-            json.Add("playerStates", MakePlayerStatesJson());
-            return json;
-        }
-
-        public JsonObject MakePhaseJson()
-        {
-            var json = new JsonObject();
-            json.Add("name", _phase.ToString());
-
-            switch (_phase)
-            {
-                case TurnPhase.PayRent:
-                    var jsonRentPendingPlayers = new JsonArray();
-                    foreach (var player in _rentPendingPlayers) jsonRentPendingPlayers.Add(player.Username);
-                    json.Add("rentPendingPlayers", jsonRentPendingPlayers);
-                    break;
-            }
-
-            return json;
-        }
-
-        public JsonObject MakePlayerStatesJson()
-        {
-            var json = new JsonObject();
-            foreach (var (player, state) in PlayerStates) json.Add(player.Username, state.MakePublicJson());
-            return json;
         }
 
         public void Update(double deltaTime)
@@ -191,6 +160,46 @@ namespace ColocDuty.InGame
             json.Add("type", "goInGamePhase");
             json.Add("phase", MakePhaseJson());
             _room.BroadcastJson(json);
+        }
+
+        public JsonObject MakeJson()
+        {
+            var json = new JsonObject();
+            json.Add("phase", MakePhaseJson());
+
+            json.Add("mood", 12);
+            json.Add("maxMood", 20);
+
+            json.Add("hygiene", 17);
+            json.Add("maxHygiene", 20);
+
+            json.Add("playerStates", MakePlayerStatesJson());
+            return json;
+        }
+
+        public JsonObject MakePhaseJson()
+        {
+            var json = new JsonObject();
+            json.Add("name", _phase.ToString());
+
+            switch (_phase)
+            {
+                case TurnPhase.PayRent:
+                    var jsonRentPendingPlayers = new JsonArray();
+                    foreach (var player in _rentPendingPlayers) jsonRentPendingPlayers.Add(player.Username);
+                    json.Add("rentPendingPlayers", jsonRentPendingPlayers);
+                    json.Add("amountDue", _rentAmount);
+                    break;
+            }
+
+            return json;
+        }
+
+        public JsonObject MakePlayerStatesJson()
+        {
+            var json = new JsonObject();
+            foreach (var (player, state) in PlayerStates) json.Add(player.Username, state.MakePublicJson());
+            return json;
         }
     }
 }

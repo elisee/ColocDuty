@@ -23,31 +23,31 @@
     ctx.save();
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     ctx.scale(scale, scale);
 
-    const bg = images[`/Assets/Background.jpg`];
-    ctx.drawImage(bg, (scaledWidth - bg.width) / 2, 0);
-
-    ctx.globalAlpha = 0.8;
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, scaledWidth, refHeight);
-    ctx.globalAlpha = 1.0;
-
+    drawBackground();
     drawState();
     drawPlayers();
 
     ctx.restore();
   };
 
+  function drawBackground()
+  {
+    const bg = images[`/Assets/Viewer/Background.jpg`];
+    ctx.drawImage(bg, (scaledWidth - bg.width) / 2, 0);
+
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, scaledWidth, refHeight);
+    ctx.globalAlpha = 1.0;
+  }
+
   function drawState() {
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
     if (networkData.game == null) {
-      // ctx.fillStyle = "#444";
-      // ctx.fillRect(scaledWidth / 2 - 400, refHeight / 2 - 100, 800, 200);
-
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
       ctx.fillStyle = "#e7ad64";
       ctx.font = "lighter 40px Open Sans";
       ctx.fillText(`YOUR ROOM CODE IS`, scaledWidth / 2, refHeight / 2 - 40);
@@ -55,13 +55,41 @@
       ctx.fillStyle = "#fff";
       ctx.font = "900 96px Montserrat";
       ctx.fillText(setup.roomCode, scaledWidth / 2, refHeight / 2 + 40);
-    } else {
-      ctx.fillStyle = "#fff";
-      ctx.textAlign = "center";
-
-      ctx.font = "40px Montserrat";
-      ctx.fillText(networkData.game.phase.name, scaledWidth / 2, refHeight / 2);
+      return;
     }
+
+    const { phase } = networkData.game;
+
+    switch (phase.name) {
+      case "PayRent":
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+
+        ctx.fillStyle = "#e7ad64";
+        ctx.font = "lighter 40px Open Sans";
+        ctx.fillText(`TIME TO PAY THE RENT!`, scaledWidth / 2, refHeight / 2 - 40);
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "900 96px Montserrat";
+        ctx.fillText(phase.amountDue + " ¢looqs", scaledWidth / 2, refHeight / 2 + 40);
+        break;
+    }
+
+    const homeIcon = images["/Assets/Viewer/HomeIcon.png"];
+    drawImageHalf(ctx, homeIcon, scaledWidth / 2 - homeIcon.width / 4, refHeight - homeIcon.height / 2);
+
+    const moodBarEmpty = images["/Assets/Viewer/MoodBarEmpty.png"];
+    const moodBarFull = images["/Assets/Viewer/MoodBarFull.png"];
+    drawImageHalf(ctx, moodBarEmpty, 0, refHeight - moodBarEmpty.height / 2);
+
+    const moodValue = networkData.game.mood / networkData.game.maxMood;
+    ctx.drawImage(moodBarFull,
+      moodBarFull.width * (1 - moodValue), 0,
+      moodBarFull.width * moodValue, moodBarFull.height,
+      0, refHeight - moodBarFull.height / 2, moodBarFull.width / 2 * moodValue, moodBarFull.height / 2);
+
+    const hygieneBarEmpty = images["/Assets/Viewer/HygieneBarEmpty.png"];
+    drawImageHalf(ctx, hygieneBarEmpty, scaledWidth - hygieneBarEmpty.width / 2, refHeight - hygieneBarEmpty.height / 2);
   }
 
   function drawPlayers() {
@@ -73,8 +101,9 @@
     const cartridgeSize = characterSize * 0.9;
     const cartridgeOffset = (characterSize - cartridgeSize) / 2;
 
-    const frameImage = images[`/Assets/CharacterFrame.png`];
-    const billIcon = images[`/Assets/BillIcon.png`];
+    const frameImage = images[`/Assets/Viewer/CharacterFrame.png`];
+    const billIcon = images[`/Assets/Viewer/BillIcon.png`];
+    const cardIcons = images[`/Assets/Viewer/CardIcons.png`];
 
     for (let i = 0; i < networkData.players.length; i++) {
       const player = networkData.players[i];
@@ -91,8 +120,7 @@
         if (phase.name === "PayRent") {
           const hasPaid = phase.rentPendingPlayers.indexOf(player.username) === -1;
           ctx.save();
-          ctx.translate(playerX + cartridgeOffset + (flipped ? 0 : cartridgeSize), playerY + topMargin);
-          ctx.scale(flipped ? -1 : 1, 1);
+          ctx.translate(playerX + cartridgeOffset + (flipped ? -billIcon.height : cartridgeSize), playerY + 120);
           drawFrame(ctx, billIcon, hasPaid ? 1 : 0, 0, 0);
           ctx.restore();
         }
@@ -109,19 +137,9 @@
       ctx.fillText(player.username, playerX + 0.5 * characterSize, playerY - 15);
 
       if (networkData.game != null) {
-        // Draw player's hidden hand
-        const cardBackImage = images[`/Assets/Cards/Back.jpg`];
-        const cardBackScale = 40;
-
+        // Draw player's card count
         const { handCardCount } = networkData.game.playerStates[player.username];
-        for (let j = 0; j < handCardCount; j++) {
-          const x = characterSize / 2 + (j - handCardCount / 2) * cardBackImage.width / cardBackScale;
-          const y = playerY + characterSize * 0.8;
-
-          ctx.drawImage(
-            cardBackImage, 0, 0, cardBackImage.width, cardBackImage.height,
-            x, y, cardBackImage.width / cardBackScale, cardBackImage.height / cardBackScale);
-        }
+        if (handCardCount > 0) drawFrame(ctx, cardIcons, Math.min(handCardCount, 8), playerX + 192, playerY - 8, 128);
       }
     }
   }
