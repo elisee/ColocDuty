@@ -1,3 +1,5 @@
+const backgroundColor = "#00223e";
+
 const images = {};
 
 const charSize = 256;

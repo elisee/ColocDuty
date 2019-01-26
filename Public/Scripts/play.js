@@ -119,7 +119,7 @@
     scale = canvas.height / refHeight;
     scaledWidth = canvas.width / scale;
 
-    ctx.fillStyle = "#44c";
+    ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.save();

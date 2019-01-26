@@ -10,6 +10,7 @@ body {
   user-select: none;
   text-align: center;
   overflow: hidden;
+  background: #00223e;
 }
 
 h1 {

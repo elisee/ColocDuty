@@ -11,6 +11,8 @@ body {
   font-family: 'Montserrat', sans-serif;
   user-select: none;
   overflow: hidden;
+  background: #00223e;
+  color: #eee;
 }
 
 body > div, body > form {
@@ -20,6 +22,8 @@ body > div, body > form {
 
 .loading, .disconnected {
   font-size: 2em;
+  text-align: center;
+  padding: 0.5em;
 }
 
 /* Viewer */
