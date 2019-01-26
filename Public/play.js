@@ -103,6 +103,12 @@ function onSocketMessage(event) {
       if (isViewer) applyViewerState();
       else applyPlayerState();
       break;
+
+    case "setTurnPhase":
+      gameData.state.phase = json.phase;
+      if (isViewer) applyViewerState();
+      else applyPlayerState();
+      break;
   }
 }
 
@@ -271,19 +277,11 @@ waitingButtonElt.addEventListener("click", (event) => {
 function applyPlayerState() {
   setVisible($(".player .waiting"), gameData.state.name === "waiting");
   setVisible($(".player .inGame"), gameData.state.name === "inGame");
+
+  if (gameData.state.name === "inGame") {
+    $(".player .inGame .phase").textContent = gameData.state.phase;
+  }
 }
 
 function animatePlayerInGame() {
-  switch (gameData.state.turnPhase) {
-    case "startTransition":
-      break;
-    case "payRent":
-      break;
-    case "marketTransition":
-      break;
-    case "market":
-      break;
-    case "endTransition":
-      break;
-  }
 }
