@@ -3,8 +3,9 @@
     setVisible($(".viewer .debug"), networkData.game == null);
   };
 
-  const targetWidth = 1920;
-  const targetHeight = 1080;
+  let scale;
+  const refHeight = 1080;
+  let scaledWidth;
 
   const canvas = $(".viewer canvas");
   const ctx = canvas.getContext("2d");
@@ -14,34 +15,44 @@
 
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
+    scale = canvas.height / refHeight;
+    scaledWidth = canvas.width / scale;
 
     ctx.save();
+    ctx.fillStyle = "#00223e";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const backgroundImage = images[`/Assets/Background.jpg`];
-    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+    ctx.scale(scale, scale);
 
-    drawStateInformations();
+    const bg = images[`/Assets/Background.jpg`];
+    ctx.drawImage(bg, (scaledWidth - bg.width) / 2, 0);
+
+    drawState();
     drawPlayers();
 
     ctx.restore();
   };
 
-  function drawStateInformations() {
+  function drawState() {
     if (networkData.game == null) {
+      ctx.fillStyle = "#444";
+      ctx.fillRect(scaledWidth / 2 - 400, refHeight / 2 - 100, 800, 200);
+
       ctx.fillStyle = "#fff";
       ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
 
       ctx.font = "40px Montserrat";
-      ctx.fillText(`Join the game with the code:`, canvas.width / 2, canvas.height / 2);
+      ctx.fillText(`Join the game with the code:`, scaledWidth / 2, refHeight / 2 - 40);
 
       ctx.font = "50px Montserrat";
-      ctx.fillText(setup.roomCode, canvas.width / 2, canvas.height / 2 + 60);
+      ctx.fillText(setup.roomCode, scaledWidth / 2, refHeight / 2 + 40);
     } else {
       ctx.fillStyle = "#fff";
       ctx.textAlign = "center";
 
       ctx.font = "40px Montserrat";
-      ctx.fillText(networkData.game.phase, canvas.width / 2, canvas.height / 2);
+      ctx.fillText(networkData.game.phase, scaledWidth / 2, refHeight / 2);
     }
   }
 

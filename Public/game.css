@@ -39,8 +39,12 @@ body > div, body > form {
 
 .viewer .debug {
   position: relative;
-  top: 60px;
-  left: 500px;
+  top: 2em;
+  text-align: center;
+}
+
+.viewer .debug button {
+  padding: 1em;
 }
 
 /* Player */

@@ -79,8 +79,8 @@
     setVisible($(".player .inGame"), networkData.game != null);
   };
 
-  const playerCanvas = $(".player .inGame canvas");
-  const playerContext = playerCanvas.getContext("2d");
+  const canvas = $(".player .inGame canvas");
+  const ctx = canvas.getContext("2d");
 
   const cardThumbWidth = 192;
   const cardThumbHeight = 243;
@@ -114,13 +114,11 @@
       ctx.fillText(card.name, x, y);
     }
 
-    const canvas = playerCanvas;
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
     scale = canvas.height / refHeight;
     scaledWidth = canvas.width / scale;
 
-    const ctx = playerContext;
     ctx.fillStyle = "#44c";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -165,7 +163,7 @@
     }
   }
 
-  touch(playerCanvas, (touch) => {
+  touch(canvas, (touch) => {
     if (touch.ended) {
       if (drag.target == null) return;
 
