@@ -1,7 +1,7 @@
 const images = {};
 
 const charSize = 256;
-const characterCount = 7;
+const characterCount = 4;
 const characterSprites = [];
 
 const imageUrls = [];
