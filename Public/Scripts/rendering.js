@@ -24,3 +24,7 @@ function drawSprite(ctx, sprite, x, y, destWidth, destHeight) {
 
   ctx.drawImage(sprite.image, column * sprite.width, row * sprite.height, sprite.width, sprite.height, x, y, destWidth, destHeight);
 }
+
+function drawFrame(ctx, image, index, x, y) {
+  ctx.drawImage(image, index * image.height, 0, image.height, image.height, x, y, image.height, image.height);
+}

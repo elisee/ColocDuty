@@ -1,5 +1,5 @@
 {
-  const playerColors = [ "#0ca0e6", "#9662e0", "#f32972", "#92e8f9", "#f5922a", "#69ce4a" ];
+  const playerColors = ["#0ca0e6", "#9662e0", "#f32972", "#92e8f9", "#f5922a", "#69ce4a"];
 
   window.engine.applyViewerState = () => {
     setVisible($(".viewer .debug"), networkData.game == null);
@@ -47,11 +47,11 @@
 
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      
+
       ctx.fillStyle = "#e7ad64";
       ctx.font = "lighter 40px Open Sans";
       ctx.fillText(`YOUR ROOM CODE IS`, scaledWidth / 2, refHeight / 2 - 40);
-      
+
       ctx.fillStyle = "#fff";
       ctx.font = "900 96px Montserrat";
       ctx.fillText(setup.roomCode, scaledWidth / 2, refHeight / 2 + 40);
@@ -74,15 +74,33 @@
     const cartridgeOffset = (characterSize - cartridgeSize) / 2;
 
     const frameImage = images[`/Assets/CharacterFrame.png`];
+    const billIcon = images[`/Assets/BillIcon.png`];
 
     for (let i = 0; i < networkData.players.length; i++) {
       const player = networkData.players[i];
 
-      const playerX = (i % 2 == 0) ? horizontalMargin : (scaledWidth - entryWidth - horizontalMargin);
+      const flipped = i % 2 != 0;
+      const flipMultiplier = flipped ? -1 : 1;
+      const playerX = !flipped ? horizontalMargin : (scaledWidth - entryWidth - horizontalMargin);
       const playerY = topMargin + Math.floor(i / 2) * entryHeight;
 
+      // Draw enveloppe
+      if (networkData.game != null) {
+        const { phase } = networkData.game;
+
+        if (phase.name === "PayRent") {
+          const hasPaid = phase.rentPendingPlayers.indexOf(player.username) === -1;
+          ctx.save();
+          ctx.translate(playerX + cartridgeOffset + (flipped ? 0 : cartridgeSize), playerY + topMargin);
+          ctx.scale(flipped ? -1 : 1, 1);
+          drawFrame(ctx, billIcon, hasPaid ? 1 : 0, 0, 0);
+          ctx.restore();
+        }
+      }
+
+      // Draw cartridge
       ctx.drawImage(frameImage, 0, 0, frameImage.width, frameImage.height, playerX + cartridgeOffset, playerY + cartridgeOffset, cartridgeSize, cartridgeSize);
-      
+
       drawSprite(ctx, characterSprites[player.characterIndex], playerX, playerY, characterSize, characterSize);
 
       ctx.font = "bold 36px Montserrat";
@@ -103,16 +121,6 @@
           ctx.drawImage(
             cardBackImage, 0, 0, cardBackImage.width, cardBackImage.height,
             x, y, cardBackImage.width / cardBackScale, cardBackImage.height / cardBackScale);
-        }
-
-        // Draw enveloppe
-        const { phase } = networkData.game;
-
-        if (phase.name === "PayRent") {
-          if (phase.rentPendingPlayers.indexOf(player.username)) {
-            ctx.fillStyle = "#f00";
-            ctx.fillRect(playerX, playerY, 64, 64);
-          }
         }
       }
     }

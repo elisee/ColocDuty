@@ -138,6 +138,7 @@ namespace ColocDuty.InGame
             {
                 case TurnPhase.PayRent:
                     var jsonRentPendingPlayers = new JsonArray();
+                    foreach (var player in _rentPendingPlayers) jsonRentPendingPlayers.Add(player.Username);
                     json.Add("rentPendingPlayers", jsonRentPendingPlayers);
                     break;
             }
@@ -161,9 +162,9 @@ namespace ColocDuty.InGame
                 case TurnPhase.PayRentFadeIn:
                     if (_phaseTimer >= FadeInDuration)
                     {
-                        SetPhase(TurnPhase.PayRent);
                         _rentPendingPlayers.Clear();
                         _rentPendingPlayers.AddRange(PlayerStates.Keys);
+                        SetPhase(TurnPhase.PayRent);
                     }
                     break;
 

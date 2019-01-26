@@ -31,6 +31,8 @@ imageUrls.push(`/Assets/Cards/Job/Cobaye Bebop.png`);
 
 imageUrls.push(`/Assets/CharacterFrame.png`);
 
+imageUrls.push(`/Assets/BillIcon.png`);
+
 for (let i = 0; i < characterCount; i++) {
   imageUrls.push(`/Assets/Characters/${i}-Idle.png`);
 }
