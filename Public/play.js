@@ -37,7 +37,7 @@ function loadImages(callback) {
 const characterCount = 7;
 
 for (let i = 0; i < characterCount; i++) {
-  imageUrls.push(`/assets/characters/${i}-Idle.png`);
+  imageUrls.push(`/Assets/Characters/${i}-Idle.png`);
 }
 
 loadImages(() => {
@@ -245,7 +245,7 @@ const charSelector = {
 
 function setupCharacterSelector() {
   for (let i = 0; i < characterCount; i++) {
-    const image = images[`/assets/characters/${i}-Idle.png`];
+    const image = images[`/Assets/Characters/${i}-Idle.png`];
     charSelector.sprites.push(makeSprite(image, charSize, charSize, 12, 12));
   }
 }
