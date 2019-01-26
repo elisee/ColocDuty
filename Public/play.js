@@ -38,6 +38,7 @@ function onSocketOpen(event) {
 
 window.gameData = null;
 window.selfData = null;
+window.selfState = null;
 
 function onSocketMessage(event) {
   const json = JSON.parse(event.data);
@@ -58,6 +59,7 @@ function onSocketMessage(event) {
 
       gameData = json.gameData;
       selfData = json.selfData;
+      selfState = json.selfState;
       applyPlayerState();
       break;
 
@@ -83,6 +85,7 @@ function onSocketMessage(event) {
 
     case "setState":
       gameData.state = json.state;
+      window.selfState = json.selfState;
       if (setup.isViewer) applyViewerState();
       else applyPlayerState();
       break;
@@ -200,11 +203,29 @@ waitingButtonElt.addEventListener("click", (event) => {
 function applyPlayerState() {
   setVisible($(".player .waiting"), gameData.state.name === "waiting");
   setVisible($(".player .inGame"), gameData.state.name === "inGame");
-
-  if (gameData.state.name === "inGame") {
-    $(".player .inGame .phase").textContent = gameData.state.phase;
-  }
 }
 
+const playerCanvas = $(".player .inGame canvas");
+const playerContext = playerCanvas.getContext("2d");
+
 function animatePlayerInGame() {
+  const canvas = playerCanvas;
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+  const ctx = playerContext;
+
+  ctx.fillStyle = "#00f";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+
+  ctx.fillStyle = "#f0f";
+
+  for (let i = 0; i < selfState.hand.length; i++) {
+    const card = selfState.hand[i];
+    ctx.fillRect(i * 200, 0, 100, 100);
+  }
+
+  ctx.restore();
 }

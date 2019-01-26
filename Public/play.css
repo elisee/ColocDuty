@@ -34,7 +34,7 @@ body > div, body > form {
 .viewer canvas {
   position: absolute;
   width: 100%;
-  height: 100%
+  height: 100%;
 }
 
 .viewer .debug {
@@ -89,4 +89,9 @@ body > div, body > form {
 
 .player .waiting button.start {
   background: #05f;
+}
+
+.player canvas {
+  width: 100%;
+  height: 100%;
 }

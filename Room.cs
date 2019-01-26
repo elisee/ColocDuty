@@ -181,16 +181,11 @@ namespace ColocDuty
                                 var outJson = new JsonObject();
                                 outJson.Add("type", "helloPlayer");
                                 outJson.Add("selfData", peer.Player.MakeSelfJson());
+                                if (game != null) outJson.Add("selfState", game.PlayerStates[peer.Player].MakeSelfJson());
+
                                 outJson.Add("gameData", MakeGameJson());
                                 SendJson(peer, outJson);
                                 _activePeers.Add(peer);
-
-                                {
-                                    var broadcastJson = new JsonObject();
-                                    broadcastJson.Add("type", "addPlayer");
-                                    broadcastJson.Add("data", peer.Player.MakePublicJson());
-                                    BroadcastJson(broadcastJson);
-                                }
                                 return;
                             }
                         }
@@ -207,6 +202,7 @@ namespace ColocDuty
                         if (peer.IsViewer) { Kick(peer, "Peer was setup as viewer."); return; }
                         if (peer.Player != null) { Kick(peer, "Player already setup."); return; }
                         if (Players.Count >= MaxPlayers) { Kick(peer, "Max players reached."); return; }
+                        if (game != null) { Kick(peer, "Game is already in progress."); return; }
 
                         if (!inJson.TryGetValue("username", out var jsonUsername) ||
                             jsonUsername == null ||
@@ -267,12 +263,18 @@ namespace ColocDuty
 
                         game = new Game(this);
 
+                        var jsonState = MakeStateJson();
+
+                        foreach (var activePeer in _activePeers)
                         {
-                            var broadcastJson = new JsonObject();
-                            broadcastJson.Add("type", "setState");
-                            broadcastJson.Add("state", MakeStateJson());
-                            BroadcastJson(broadcastJson);
+                            var json = new JsonObject();
+                            json.Add("type", "setState");
+                            json.Add("state", jsonState);
+                            if (activePeer.Player != null) json.Add("selfState", game.PlayerStates[activePeer.Player].MakeSelfJson());
+
+                            SendJson(activePeer, json);
                         }
+
                         break;
                 }
             }
