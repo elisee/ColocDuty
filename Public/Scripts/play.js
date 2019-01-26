@@ -90,8 +90,8 @@
   const refHeight = 1920;
   let scaledWidth;
 
-  const bigCardWidth = 853;
-  const bigCardHeight = 1080;
+  const bigCardWidth = 963;
+  const bigCardHeight = 1267;
 
   const playAreaBottom = 1500;
 
@@ -111,7 +111,7 @@
 
       // TODO: Use card.name
       const cardArt = images[`/Assets/Cards/Job/${"Cobaye Bebop"}.png`];
-      const cardOverlay = images[`/Assets/Cards/${card.type}.png`];
+      const cardOverlay = images[`/Assets/Cards/Card_${card.type}.png`];
 
       const scale = cardOverlay.height / cardThumbHeight;
 
@@ -127,7 +127,7 @@
     function drawBigCard(card, x, y) {
       // TODO: Use card.name
       const cardArt = images[`/Assets/Cards/Job/${"Cobaye Bebop"}.png`];
-      const cardOverlay = images[`/Assets/Cards/${card.type}.png`];
+      const cardOverlay = images[`/Assets/Cards/Card_${card.type}.png`];
 
       const scale = cardOverlay.height / bigCardHeight;
 
@@ -141,6 +141,27 @@
 
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
+
+      // Money
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "900 80px Montserrat";
+      ctx.fillText(card.moneyModifier, x + bigCardWidth * 0.14, y + bigCardHeight * 0.17);
+
+      const money = images[`/Assets/Cards/Money.png`];
+      const moneyIconScale = 0.25;
+      ctx.drawImage(
+        money, 0, 0, money.width, money.height,
+        x + bigCardWidth * 0.16, y + bigCardHeight * 0.105, money.width * moneyIconScale, money.height * moneyIconScale);
+
+      // Hygiene
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "900 60px Montserrat";
+      ctx.fillText(card.hygieneModifier, x + bigCardWidth * 0.86, y + bigCardHeight * 0.15);
+
+      // Mood
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "900 60px Montserrat";
+      ctx.fillText(card.moodModifier, x + bigCardWidth * 0.9, y + bigCardHeight * 0.09);
 
       // Name
       ctx.fillStyle = "#fff";
@@ -159,22 +180,22 @@
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
       ctx.shadowColor = "rgba(0,0,0,0.3)";
-      ctx.fillText(card.name, x + bigCardWidth / 2, y + bigCardHeight * 0.59);
+      ctx.fillText(card.name, x + bigCardWidth / 2, y + bigCardHeight * 0.58);
       ctx.restore();
 
       // Description
       ctx.fillStyle = "#a3b2b5";
-      ctx.font = "400 24px Montserrat";
-      writeWrappedText(ctx, card.description, x + bigCardWidth / 2, y + bigCardHeight * 0.71, bigCardWidth * 0.7, 28);
+      ctx.font = "400 32px Montserrat";
+      writeWrappedText(ctx, card.description, x + bigCardWidth / 2, y + bigCardHeight * 0.74, bigCardWidth * 0.75, 28);
 
       // Action
       ctx.fillStyle = "#fddd6e";
-      ctx.font = "700 36px Montserrat";
-      writeWrappedText(ctx, card.action, x + bigCardWidth / 2, y + bigCardHeight * 0.84, bigCardWidth * 0.65, 40);
+      ctx.font = "700 40px Montserrat";
+      writeWrappedText(ctx, card.action, x + bigCardWidth / 2, y + bigCardHeight * 0.87, bigCardWidth * 0.65, 40);
 
       // Type
       ctx.fillStyle = cardTypeSettings[card.type].color;
-      ctx.font = "900 42px Montserrat";
+      ctx.font = "900 46px Montserrat";
 
       ctx.save();
       ctx.shadowOffsetX = 2;

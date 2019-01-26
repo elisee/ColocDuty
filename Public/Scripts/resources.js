@@ -11,7 +11,7 @@ const imageUrls = [];
 const cardTypeSettings = {
   "Event": { color: "#ffc15f" },
   "Hygiene": { color: "#44dab0" },
-  "Interaction": { color: "#913eb6" },
+  "Interaction": { color: "#c373e5" },
   "Job": { color: "#0e9eda" },
   "Malus": { color: "#f21259" },
   "Mood": { color: "#ffd45e" },

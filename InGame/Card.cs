@@ -28,6 +28,7 @@ namespace ColocDuty.InGame
             json.Add("type", Data.Type);
             json.Add("cost", Data.Cost);
             json.Add("moneyModifier", Data.MoneyModifier);
+			json.Add("hygieneModifier", Data.HygieneModifier);
             json.Add("moodModifier", Data.MoodModifier);
             return json;
         }

@@ -7,8 +7,10 @@ for (let i = 0; i < characterCount; i++) imageUrls.push(`/Assets/Characters/${i}
 
 var cardTypes = Object.keys(cardTypeSettings);
 for (let i = 0; i < cardTypes.length; i++) {
-  imageUrls.push(`/Assets/Cards/${cardTypes[i]}.png`);
+  imageUrls.push(`/Assets/Cards/Card_${cardTypes[i]}.png`);
 }
+
+imageUrls.push("/Assets/Cards/Money.png");
 
 // TODO: Preload all cards, based on input from the server
 imageUrls.push(`/Assets/Cards/Job/Cobaye Bebop.png`);

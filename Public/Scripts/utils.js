@@ -20,23 +20,28 @@ function removeFromList(list, item) {
 
 // Text
 function writeWrappedText(context, text, x, y, maxWidth, lineHeight) {
-  var words = text.split(' ');
-  var line = '';
+  const words = text.split(" ");
+  const lines = [];
+  let currentLine = "";
 
   for(var n = 0; n < words.length; n++) {
-    var testLine = line + words[n] + ' ';
+    var testLine = currentLine + words[n] + " ";
     var metrics = context.measureText(testLine);
     var testWidth = metrics.width;
     if (testWidth > maxWidth && n > 0) {
-      context.fillText(line, x, y);
-      line = words[n] + ' ';
-      y += lineHeight;
+      lines.push(currentLine);
+      currentLine = words[n] + " ";
     }
     else {
-      line = testLine;
+      currentLine = testLine;
     }
   }
-  context.fillText(line, x, y);
+
+  lines.push(currentLine);
+
+  for (var i = 0; i < lines.length; i++) {
+    context.fillText(lines[i], x, y + (i - lines.length / 2) * lineHeight);
+  }
 }
 
 // Touch
