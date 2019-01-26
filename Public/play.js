@@ -34,10 +34,10 @@ function loadImages(callback) {
   }
 }
 
-const characterCount = 6;
+const characterCount = 7;
 
 for (let i = 0; i < characterCount; i++) {
-  imageUrls.push(`/assets/characters/${i}.png`);
+  imageUrls.push(`/assets/characters/${i}-Idle.png`);
 }
 
 loadImages(() => {
@@ -141,7 +141,7 @@ function touch(elt, callback) {
     callback({ started: true, x: event.clientX, y: event.clientY });
   });
 
-  elt.addEventListener("mouseup", (event) => {
+  document.body.addEventListener("mouseup", (event) => {
     if (event.button !== 0 || !isMouseDown) return;
 
     isMouseDown = false;
@@ -245,7 +245,7 @@ const charSelector = {
 
 function setupCharacterSelector() {
   for (let i = 0; i < characterCount; i++) {
-    const image = images[`/assets/characters/${i}.png`];
+    const image = images[`/assets/characters/${i}-Idle.png`];
     charSelector.sprites.push(makeSprite(image, charSize, charSize, 12, 12));
   }
 }
