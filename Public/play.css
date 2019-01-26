@@ -25,23 +25,81 @@ body > div, body > form {
 /* Join */
 .join {
   text-align: center;
-  padding: 2em;
+  background: #800;
+}
+
+.join .header {
+  background: #ccc;
+  padding: 1em;
+  font-size: 1.5em;
+}
+
+.join .username {
+  border: 0;
+  background: #444;
+  font-size: 2em;
+  text-align: center;
+  padding: 0.5em;
+  width: 100%;
+  color: #eee;
+}
+
+.join canvas {
+  max-width: 100%;
+}
+
+.join button {
+  border: 0;
+  background: #cf4;
+  width: 100%;
+  font-size: 2em;
+  padding: 0.5em;
 }
 
 /* Viewer */
 .viewer {
-  text-align: center;
-  padding: 2em;
+  display: flex;
 }  
+
+.viewer > * {
+  flex: 1;
+}
+
+.viewer .waiting {
+  text-align: center;
+}
 
 .viewer .gameUrl {
   display: block;
   font-size: 2em;
-}  
-
-/* Player */
-.player .waitingForStart {
-  text-align: center;
-  padding: 2em;
 }
 
+/* Player */
+.player {
+  display: flex;
+}
+
+.player > * {
+  flex: 1;
+}
+
+.player .waiting {
+  text-align: center;
+  background: #740;
+}
+
+.player .header {
+  background: #ccc;
+  padding: 1em;
+  font-size: 1.5em;
+}
+
+.player .waiting .text {
+  padding: 1em;
+}
+
+.player .waiting button {
+  width: 100%;
+  padding: 0.5em;
+  font-size: 1.5em;
+}

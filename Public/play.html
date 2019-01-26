@@ -11,11 +11,13 @@
 <body>
   <form class="join" hidden>
     <div>
-      <div>Your name:</div>
-      <div><input type="text" class="username"></div>
+      <div class="header">Your name</div>
+      <div><input type="text" class="username" required minlength="2" maxlength="20"></div>
+    </div>
 
-      <canvas class="characterSelector">
-      </canvas>
+    <div>
+        <div class="header">Choose character</div>
+      <canvas class="characterSelector" width="384" height="256"></canvas>
     </div>
 
     <div><button>Ready!</button></div>
@@ -36,9 +38,9 @@
   </div>
   <div class="player" hidden>
     <form class="waiting" hidden>
-      <div>Hello <span class="username"></span></div>
-      <div>Click start when all players have joined!</div>
-      <button>Start!</button>
+      <div class="header">Hello <span class="username"></span>!</div>
+      <div class="text">Click start when all players have joined.</div>
+      <div><button>Start!</button></div>
     </form>
     <div class="inGame" hidden>
       <canvas></canvas>

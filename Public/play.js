@@ -37,10 +37,11 @@ function loadImages(callback) {
 const characterCount = 6;
 
 for (let i = 0; i < characterCount; i++) {
-  imageUrls.push(`/assets/characters/${characterCount}.png`);
+  imageUrls.push(`/assets/characters/${i}.png`);
 }
 
 loadImages(() => {
+  setupCharacterSelector();
   connect();
 });
 
@@ -98,24 +99,23 @@ function onSocketMessage(event) {
       hide($(".loading"));
       show($(".join"));
 
-      for (let i = 0; i < characterCount; i++) {
-        $make("img", characterSelectorElt, { src: `/assets/characters/${characterCount}.png` });
-      }
-      
       $(".join .username").focus();
       break;
 
     case "addPlayer":
+      if (gameData == null) break;
       gameData.players.push(json.username);
       buildPlayerList();
       break;
 
     case "removePlayer":
+      if (gameData == null) break;
       removeFromList(gameData.players, json.username);
       buildPlayerList();
       break;
 
     case "setState":
+      if (gameData == null) break;
       gameData.state = json.state;
       if (isViewer) applyViewerState();
       else applyPlayerState();
@@ -132,19 +132,86 @@ function onSocketClose(event) {
   $(".disconnected .reason").textContent = event.reason;
 }
 
-// Animate
-function animate() {
-  requestAnimationFrame(animate);
+// Touch
+function touch(elt, callback) {
+  let touchId = null;
+  let isMouseDown = false;
 
-  if (!$(".join").hidden) animateCharacterSelect();
-  if (!$(".viewer .inGame").hidden) animateViewerInGame();
-  if (!$(".player .inGame").hidden) animatePlayerInGame();
+  elt.addEventListener("mousedown", (event) => {
+    if (event.button !== 0) return;
+    isMouseDown = true;
+
+    callback({ started: true, x: event.clientX, y: event.clientY });
+  });
+
+  elt.addEventListener("mouseup", (event) => {
+    if (event.button !== 0 || !isMouseDown) return;
+
+    isMouseDown = false;
+    callback({ ended: true, x: event.clientX, y: event.clientY });
+  });
+
+  elt.addEventListener("mousemove", (event) => {
+    if (event.button !== 0 || !isMouseDown) return;
+
+    callback({ x: event.clientX, y: event.clientY });
+  });
+
+  elt.addEventListener("touchstart", (event) => {
+    if (touchId != null) return;
+    touchId = event.changedTouches[0].identifier;
+
+    callback({ started: true, x: event.changedTouches[0].clientX, y: event.changedTouches[0].clientY });
+  });
+
+  elt.addEventListener("touchmove", (event) => {
+    for (const changedTouch of event.changedTouches) {
+      if (changedTouch.identifier === touchId) {
+        callback({ x: changedTouch.clientX, y: changedTouch.clientY });
+        return;
+      }
+    }
+  });
+
+  elt.addEventListener("touchend", (event) => {
+    for (const changedTouch of event.changedTouches) {
+      if (changedTouch.identifier == touchId) {
+        callback({ ended: true, x: changedTouch.clientX, y: changedTouch.clientY });
+        touchId = null;
+        return;
+      }
+    }
+  });
 }
 
-animate();
+// Animate
+let previousTimestamp = 0;
+
+function animate(timestamp) {
+  requestAnimationFrame(animate);
+
+  const ms = timestamp - previousTimestamp;
+  previousTimestamp = timestamp;
+
+  if (!$(".join").hidden) animateCharacterSelector(ms);
+  if (!$(".viewer .inGame").hidden) animateViewerInGame(ms);
+  if (!$(".player .inGame").hidden) animatePlayerInGame(ms);
+}
+
+animate(0);
+
+function lerp(a, b, v) {
+  return a + (b - a) * v;
+}
+
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(v, max));
+}
 
 // Join
-$(".join").addEventListener("submit", (event) => {
+const joinForm = $(".join");
+joinForm.addEventListener("submit", (event) => {
+  if (!joinForm.checkValidity()) return;
   event.preventDefault();
 
   hide($(".join"));
@@ -153,17 +220,72 @@ $(".join").addEventListener("submit", (event) => {
 });
 
 const charSelectorCanvas = $(".join .characterSelector");
-const charSelectorCtx = charSelectorCanvas.getContext("2d");
+const charSelectorContext = charSelectorCanvas.getContext("2d");
 
-function animateCharacterSelect() {
-  charSelectorCtx.fillStyle = "#f00";
-  charSelectorCtx.fillRect(0, 0, charSelectorCanvas.width, charSelectorCanvas.height);
+const charSize = 256;
 
+function makeSprite(image, width, height, frameCount, fps) {
+  return { image, width, height, framesPerRow: image.width / width, frameCount, frameDuration: 1000 / fps, time: 0 };
+}
+
+function tickSprites(sprites, ms) {
+  for (const sprite of sprites) sprite.time = (sprite.time + ms) % (sprite.frameCount * sprite.frameDuration);
+}
+
+function drawSprite(ctx, sprite, x, y) {
+  const index = Math.floor(sprite.time / sprite.frameDuration);
+  const column = index % sprite.framesPerRow;
+  const row = Math.floor(index / sprite.framesPerRow);
+
+  ctx.drawImage(sprite.image, column * sprite.width, row * sprite.height, sprite.width, sprite.height, x, y, sprite.width, sprite.height);
+}
+
+const charSelector = {
+  sprites: [],
+  offset: 0,
+  dragStart: null,
+};
+
+function setupCharacterSelector() {
   for (let i = 0; i < characterCount; i++) {
-    const image = images[`/assets/characters/${characterCount}.png`];
-    charSelectorCtx.drawImage(image, i * 256, 0);
+    const image = images[`/assets/characters/${i}.png`];
+    charSelector.sprites.push(makeSprite(image, charSize, charSize, 12, 12));
   }
 }
+
+function animateCharacterSelector(ms) {
+  tickSprites(charSelector.sprites, ms);
+
+  if (charSelector.dragStart == null) {
+    const closest = clamp(Math.round(charSelector.offset / charSize), 0, characterCount - 1) * charSize;
+    charSelector.offset = lerp(charSelector.offset, closest, 0.15);
+  }
+
+  const canvas = charSelectorCanvas;
+  const ctx = charSelectorContext;
+
+  ctx.fillStyle = "#c55";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.translate(canvas.width / 2 - charSize / 2, 0);
+
+  for (let i = 0; i < characterCount; i++) {
+    drawSprite(ctx, charSelector.sprites[i], i * charSize - charSelector.offset, i);
+  }
+
+  ctx.restore();
+}
+
+touch(charSelectorCanvas, (touch) => {
+  if (touch.started) {
+    charSelector.dragStart = touch.x + charSelector.offset;
+  } else if (touch.ended) {
+    charSelector.dragStart = null;
+  } else {
+    charSelector.offset = charSelector.dragStart - touch.x;
+  }
+});
 
 // Viewer
 function buildPlayerList() {
@@ -194,7 +316,9 @@ function animateViewerInGame() {
 }
 
 // Player
-$(".player .waiting").addEventListener("submit", (event) => {
+const startForm = $(".player .waiting");
+startForm.addEventListener("submit", (event) => {
+  if (!startForm.checkValidity()) return;
   event.preventDefault();
 
   send({ type: "start" });
