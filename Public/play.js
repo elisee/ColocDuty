@@ -67,7 +67,7 @@ function onSocketMessage(event) {
       break;
 
     case "helloPlayer":
-      window.localStorage.setItem("colocGuid", json.guid);
+      window.localStorage.setItem("colocGuid", json.selfData.guid);
       hide($(".loading"));
       show($(".player"));
 
