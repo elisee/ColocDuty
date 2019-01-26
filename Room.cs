@@ -137,12 +137,17 @@ namespace ColocDuty
 
             void HandleMessage(Peer peer, string type, JsonObject inJson)
             {
+                bool TryGet(string key, JsonType jsonType, out JsonValue value)
+                {
+                    return inJson.TryGetValue(key, out value) && value != null && value.JsonType == jsonType;
+                }
+
                 switch (type)
                 {
                     case "hello":
                         if (peer.Player != null) { Kick(peer, "Player already setup."); return; }
 
-                        if (inJson.TryGetValue("viewerMode", out var jsonViewerMode))
+                        if (TryGet("viewerMode", JsonType.Boolean, out var jsonViewerMode))
                         {
                             peer.IsViewer = true;
                             _activePeers.Add(peer);
@@ -155,9 +160,7 @@ namespace ColocDuty
                             return;
                         }
 
-                        if (inJson.TryGetValue("guid", out var jsonGuid) &&
-                        jsonGuid != null && jsonGuid.JsonType == JsonType.String &&
-                        Guid.TryParse((string)jsonGuid, out var guid))
+                        if (TryGet("guid", JsonType.String, out var jsonGuid) && Guid.TryParse((string)jsonGuid, out var guid))
                         {
                             if (Players.TryGetValue(guid, out var foundPlayer) && foundPlayer.Peer == null)
                             {
@@ -191,9 +194,7 @@ namespace ColocDuty
                         if (Players.Count >= MaxPlayers) { Kick(peer, "Max players reached."); return; }
                         if (game != null) { Kick(peer, "Game is already in progress."); return; }
 
-                        if (!inJson.TryGetValue("username", out var jsonUsername) ||
-                            jsonUsername == null ||
-                            jsonUsername.JsonType != JsonType.String)
+                        if (!TryGet("username", JsonType.String, out var jsonUsername))
                         {
                             Kick(peer, "Username missing."); return;
                         }
@@ -213,8 +214,7 @@ namespace ColocDuty
                             }
                         }
 
-                        if (!inJson.TryGetValue("characterIndex", out var jsonCharacterIndex) ||
-                            jsonCharacterIndex == null || jsonCharacterIndex.JsonType != JsonType.Number)
+                        if (!TryGet("characterIndex", JsonType.Number, out var jsonCharacterIndex))
                         {
                             Kick(peer, "Character index missing."); return;
                         }
@@ -262,6 +262,19 @@ namespace ColocDuty
                             SendJson(activePeer, json);
                         }
 
+                        break;
+
+                    case "useCard":
+                        if (peer.Player == null) { Kick(peer, "Can't use card without a player."); return; }
+                        if (game == null) return;
+
+                        if (!TryGet("cardId", JsonType.Number, out var jsonCardId))
+                        {
+                            Kick(peer, "Card id missing.");
+                            return;
+                        }
+
+                        game.UseCard(peer.Player, (int)jsonCardId);
                         break;
                 }
             }

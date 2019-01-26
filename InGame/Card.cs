@@ -7,25 +7,28 @@ namespace ColocDuty.InGame
 {
     class Card
     {
-        public string Name;
-        public string Action;
-        public string Description;
-        public string Type;
-        public int Cost;
-        public int MoneyModifier;
-        public int HygieneModifier;
-        public int MoodModifier;
+        public readonly int Id;
+        public readonly CardData Data;
+
+        static int NextId = 0;
+
+        public Card(CardData data)
+        {
+            Id = NextId++;
+            Data = data;
+        }
 
         public JsonObject MakeJson()
         {
             var json = new JsonObject();
-            json.Add("name", Name);
-            json.Add("action", Action);
-            json.Add("description", Description);
-            json.Add("type", Type);
-            json.Add("cost", Cost);
-            json.Add("moneyModifier", MoneyModifier);
-            json.Add("moodModifier", MoodModifier);
+            json.Add("id", Id);
+            json.Add("name", Data.Name);
+            json.Add("action", Data.Action);
+            json.Add("description", Data.Description);
+            json.Add("type", Data.Type);
+            json.Add("cost", Data.Cost);
+            json.Add("moneyModifier", Data.MoneyModifier);
+            json.Add("moodModifier", Data.MoodModifier);
             return json;
         }
     }

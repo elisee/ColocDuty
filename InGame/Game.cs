@@ -9,7 +9,7 @@ namespace ColocDuty.InGame
 {
     class Game
     {
-        public static readonly List<Card> Cards = new List<Card>();
+        public static readonly List<CardData> CardDatas = new List<CardData>();
 
         public static void LoadCards(string cardsDatabasePath, CancellationToken shutdownToken)
         {
@@ -53,7 +53,7 @@ namespace ColocDuty.InGame
                     var hygieneModifier = !string.IsNullOrWhiteSpace(values[hygieneColumnIndex]) ? int.Parse(values[hygieneColumnIndex]) : 0;
                     var moodModifier = !string.IsNullOrWhiteSpace(values[moodColumnIndex]) ? int.Parse(values[moodColumnIndex]) : 0;
 
-                    Cards.Add(new Card()
+                    CardDatas.Add(new CardData()
                     {
                         Name = name,
                         Action = action,
@@ -111,13 +111,15 @@ namespace ColocDuty.InGame
 
                 for (var i = 0; i < StartDeckSize; i++)
                 {
-                    playerState.Deck.Add(Cards[random.Next(Cards.Count)]);
+                    var data = CardDatas[random.Next(CardDatas.Count)];
+                    playerState.Deck.Add(new Card(data));
                 }
 
                 // TODO: Use a "FillHand" method or something
                 for (var i = 0; i < StartHandSize; i++)
                 {
-                    playerState.Hand.Add(Cards[random.Next(Cards.Count)]);
+                    var data = CardDatas[random.Next(CardDatas.Count)];
+                    playerState.Hand.Add(new Card(data));
                 }
             }
         }
@@ -149,6 +151,11 @@ namespace ColocDuty.InGame
                 case TurnPhase.FadeOut:
                     break;
             }
+        }
+
+        public void UseCard(Player player, int cardId)
+        {
+            // TODO...
         }
 
         void SetPhase(TurnPhase phase)

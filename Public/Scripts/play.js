@@ -213,20 +213,21 @@
     const cardOffset = (cardStripWidth - cardThumbSpace * 2) / hand.length;
 
     if (drag.target === "hand") {
-      drag.hoveredHandCardIndex = clamp(Math.floor((drag.x - (centerX - cardStripWidth / 2)) / cardOffset), 0, hand.length - 1);
+      const hoveredHandCardIndex = clamp(Math.floor((drag.x - (centerX - cardStripWidth / 2)) / cardOffset), 0, hand.length - 1);
+      drag.hoveredCard = hand[hoveredHandCardIndex];
     } else {
-      drag.hoveredHandCardIndex = null;
+      drag.hoveredCard = null;
     }
 
     for (let i = hand.length - 1; i >= 0; i--) {
       const card = hand[i];
       const x = centerX - cardStripWidth / 2 + i * cardOffset;
 
-      const mode = i === drag.hoveredHandCardIndex ? (drag.willPlayCard ? "play" : "hover") : "none";
+      const mode = card == drag.hoveredCard ? (drag.willPlayCard ? "play" : "hover") : "none";
       drawThumbCard(card, x, handAreaTop + handAreaHeight / 2 - cardThumbHeight / 2, mode);
     }
 
-    if (drag.hoveredHandCardIndex != null) drawBigCard(hand[drag.hoveredHandCardIndex], centerX - bigCardWidth / 2, centerY - bigCardHeight / 2);
+    if (drag.hoveredCard != null) drawBigCard(drag.hoveredCard, centerX - bigCardWidth / 2, centerY - bigCardHeight / 2);
   }
 
   touch(canvas, (touch) => {
@@ -235,8 +236,8 @@
 
       switch (drag.target) {
         case "hand":
-          if(drag.willPlayCard && drag.hoveredHandCardIndex != null) {
-            alert("playing card " + drag.hoveredHandCardIndex);
+          if(drag.willPlayCard && drag.hoveredCard != null) {
+            send({ type: "useCard", cardId: drag.hoveredCard.id });
           }
       }
 
