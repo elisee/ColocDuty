@@ -1,11 +1,73 @@
 ﻿using Microsoft.Collections.Extensions;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Json;
+using System.Threading;
 
 namespace ColocDuty.InGame
 {
     class Game
     {
+        public static readonly List<Card> Cards = new List<Card>();
+
+        public static void LoadCards(string cardsDatabasePath, CancellationToken shutdownToken)
+        {
+            using (var reader = new StreamReader(cardsDatabasePath))
+            {
+                // Read header to determine what column to use
+                var headerLine = reader.ReadLine();
+
+                int nameColumnIndex = 0, actionColumnIndex = 0, descriptionColumnIndex = 0, typeColumnIndex = 0;
+                int costColumnIndex = 0, moneyColumnIndex = 0, hygieneColumnIndex = 0, moodColumnIndex = 0;
+
+                var headerValues = headerLine.Split('\t');
+                for (var i = 0; i < headerValues.Length; i++)
+                {
+                    var headerValue = headerValues[i];
+
+                    if (headerValue == "Name") nameColumnIndex = i;
+                    else if (headerValue == "Action") actionColumnIndex = i;
+                    else if (headerValue == "Description") descriptionColumnIndex = i;
+                    else if (headerValue == "Type") typeColumnIndex = i;
+                    else if (headerValue == "Cost") costColumnIndex = i;
+                    else if (headerValue == "Money") moneyColumnIndex = i;
+                    else if (headerValue == "Hygiene") hygieneColumnIndex = i;
+                    else if (headerValue == "Mood") moodColumnIndex = i;
+                }
+
+                // Read all cards
+                while (!reader.EndOfStream && !shutdownToken.IsCancellationRequested)
+                {
+                    var line = reader.ReadLine();
+                    var values = line.Split('\t');
+
+                    var name = values[nameColumnIndex];
+                    if (string.IsNullOrWhiteSpace(name)) continue;
+
+                    var action = values[actionColumnIndex];
+                    var description = values[descriptionColumnIndex];
+                    var type = values[typeColumnIndex];
+                    var cost = !string.IsNullOrWhiteSpace(values[costColumnIndex]) ? int.Parse(values[costColumnIndex]) : 0;
+                    var moneyModifier = !string.IsNullOrWhiteSpace(values[moneyColumnIndex]) ? int.Parse(values[moneyColumnIndex]) : 0;
+                    var hygieneModifier = !string.IsNullOrWhiteSpace(values[hygieneColumnIndex]) ? int.Parse(values[hygieneColumnIndex]) : 0;
+                    var moodModifier = !string.IsNullOrWhiteSpace(values[moodColumnIndex]) ? int.Parse(values[moodColumnIndex]) : 0;
+
+                    Cards.Add(new Card()
+                    {
+                        Name = name,
+                        Action = action,
+                        Description = description,
+                        Type = type,
+                        Cost = cost,
+                        MoneyModifier = moneyModifier,
+                        HygieneModifier = hygieneModifier,
+                        MoodModifier = moodModifier
+                    });
+                }
+            }
+        }
+
         readonly Room _room;
 
         enum TurnPhase
@@ -39,19 +101,22 @@ namespace ColocDuty.InGame
         {
             _room = room;
 
+            // TODO: Don't take card randomly initially, it's specified in the database
+            var random = new Random();
+
             foreach (var player in room.Players.Values)
             {
                 var playerState = PlayerStates[player] = new PlayerState();
 
                 for (var i = 0; i < StartDeckSize; i++)
                 {
-                    playerState.Deck.Add(new Card { Name = "Deck" });
+                    playerState.Deck.Add(Cards[random.Next(Cards.Count)]);
                 }
 
                 // TODO: Use a "FillHand" method or something
                 for (var i = 0; i < StartHandSize; i++)
                 {
-                    playerState.Hand.Add(new Card { Name = "Hand" });
+                    playerState.Hand.Add(Cards[random.Next(Cards.Count)]);
                 }
             }
         }

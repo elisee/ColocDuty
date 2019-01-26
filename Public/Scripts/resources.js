@@ -8,8 +8,26 @@ const characterSprites = [];
 
 const imageUrls = [];
 
+const cardTypeSettings = {
+  "Event": { color: "#ffc15f" },
+  "Hygiene": { color: "#44dab0" },
+  "Interaction": { color: "#913eb6" },
+  "Job": { color: "#0e9eda" },
+  "Malus": { color: "#f21259" },
+  "Mood": { color: "#ffd45e" },
+};
+
 imageUrls.push(`/Assets/Background.jpg`);
+
 imageUrls.push(`/Assets/Cards/Back.jpg`);
+
+var cardTypes = Object.keys(cardTypeSettings);
+for (let i = 0; i < cardTypes.length; i++) {
+  imageUrls.push(`/Assets/Cards/${cardTypes[i]}.png`);
+}
+
+// TODO: Preload all cards, based on input from the server
+imageUrls.push(`/Assets/Cards/Job/Cobaye Bebop.png`);
 
 imageUrls.push(`/Assets/CharacterFrame.png`);
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore;
+﻿using ColocDuty.InGame;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -45,6 +46,10 @@ namespace ColocDuty
 
             var shutdownTokenSource = new CancellationTokenSource();
             var shutdownToken = shutdownTokenSource.Token;
+
+            Console.WriteLine($"Loading cards...");
+            Game.LoadCards(Path.Combine(directory.FullName, "InGame", "CardsDatabase.tsv"), shutdownToken);
+            Console.WriteLine($"Cards loaded.");
 
             ConcurrentDictionary<string, Room> rooms = new ConcurrentDictionary<string, Room>();
 
