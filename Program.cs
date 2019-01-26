@@ -46,7 +46,7 @@ namespace ColocDuty
             var shutdownTokenSource = new CancellationTokenSource();
             var shutdownToken = shutdownTokenSource.Token;
 
-            ConcurrentDictionary<string, ColocRoom> rooms = new ConcurrentDictionary<string, ColocRoom>();
+            ConcurrentDictionary<string, Room> rooms = new ConcurrentDictionary<string, Room>();
 
             var roomTasks = new ConcurrentDictionary<Task, byte>();
 
@@ -77,7 +77,7 @@ namespace ColocDuty
 
                     router.MapGet("start", (context) =>
                     {
-                        var room = new ColocRoom(shutdownToken);
+                        var room = new Room(shutdownToken);
 
                         while (true)
                         {
@@ -175,13 +175,13 @@ namespace ColocDuty
                     return;
                 }
 
-                ColocPeer peer = null;
+                Peer peer = null;
 
                 try
                 {
                     using (var socket = await context.WebSockets.AcceptWebSocketAsync())
                     {
-                        peer = new ColocPeer(socket);
+                        peer = new Peer(socket);
                         room.AddPeer(peer);
 
                         WebSocketReceiveResult receiveResult;

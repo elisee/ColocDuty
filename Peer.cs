@@ -5,13 +5,13 @@ using System.Text;
 
 namespace ColocDuty
 {
-    class ColocPeer
+    class Peer
     {
         public readonly WebSocket Socket;
-        public ColocPlayer Player;
+        public Player Player;
         public bool IsViewer;
 
-        public ColocPeer(WebSocket socket)
+        public Peer(WebSocket socket)
         {
             Socket = socket;
         }

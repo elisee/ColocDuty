@@ -4,13 +4,13 @@ using System.Text;
 
 namespace ColocDuty
 {
-    class ColocPlayer
+    class Player
     {
         public readonly Guid Guid;
         public readonly string Username;
-        public ColocPeer Peer;
+        public Peer Peer;
 
-        public ColocPlayer(Guid guid, string username, ColocPeer peer)
+        public Player(Guid guid, string username, Peer peer)
         {
             Guid = guid;
             Username = username;

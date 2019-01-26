@@ -11,14 +11,14 @@ using System.Threading.Tasks;
 
 namespace ColocDuty
 {
-    class ColocRoom
+    class Room
     {
         enum NetworkOutEventType { SendToPeer, KickPeer, End }
 
         class NetworkOutEvent
         {
             public NetworkOutEventType Type;
-            public IReadOnlyList<ColocPeer> Peers;
+            public IReadOnlyList<Peer> Peers;
             public string Data;
             public string KickReason;
         }
@@ -28,7 +28,7 @@ namespace ColocDuty
         class NetworkInEvent
         {
             public NetworkInEventType Type;
-            public ColocPeer Peer;
+            public Peer Peer;
             public string Data;
         }
 
@@ -40,7 +40,7 @@ namespace ColocDuty
 
         Task _gameTask;
 
-        public ColocRoom(CancellationToken shutdownToken)
+        public Room(CancellationToken shutdownToken)
         {
             _shutdownToken = shutdownToken;
         }
@@ -98,23 +98,21 @@ namespace ColocDuty
             _gameTask.Wait();
         }
 
-        public void AddPeer(ColocPeer peer) => _networkInQueue.Enqueue(new NetworkInEvent { Type = NetworkInEventType.AddPeer, Peer = peer });
-        public void RemovePeer(ColocPeer peer) => _networkInQueue.Enqueue(new NetworkInEvent { Type = NetworkInEventType.RemovePeer, Peer = peer });
-        public void ReceiveMessage(ColocPeer peer, string data) => _networkInQueue.Enqueue(new NetworkInEvent { Type = NetworkInEventType.ReceiveFromPeer, Peer = peer, Data = data });
+        public void AddPeer(Peer peer) => _networkInQueue.Enqueue(new NetworkInEvent { Type = NetworkInEventType.AddPeer, Peer = peer });
+        public void RemovePeer(Peer peer) => _networkInQueue.Enqueue(new NetworkInEvent { Type = NetworkInEventType.RemovePeer, Peer = peer });
+        public void ReceiveMessage(Peer peer, string data) => _networkInQueue.Enqueue(new NetworkInEvent { Type = NetworkInEventType.ReceiveFromPeer, Peer = peer, Data = data });
 
-        void SendJSON(List<ColocPeer> peers, JsonObject data) => _networkOutQueue.Add(new NetworkOutEvent { Peers = peers.ToArray(), Data = data.ToString() });
-        void SendJSON(ColocPeer peer, JsonObject data) => _networkOutQueue.Add(new NetworkOutEvent { Peers = new ColocPeer[] { peer }, Data = data.ToString() });
+        void SendJSON(List<Peer> peers, JsonObject data) => _networkOutQueue.Add(new NetworkOutEvent { Peers = peers.ToArray(), Data = data.ToString() });
+        void SendJSON(Peer peer, JsonObject data) => _networkOutQueue.Add(new NetworkOutEvent { Peers = new Peer[] { peer }, Data = data.ToString() });
 
         void RunLoop()
         {
             var stopwatch = Stopwatch.StartNew();
 
-            var peers = new List<ColocPeer>();
-            var players = new OrderedDictionary<Guid, ColocPlayer>();
-
-            var activePeers = new List<ColocPeer>();
-
-            var isInGame = false;
+            var peers = new List<Peer>();
+            var activePeers = new List<Peer>();
+            var players = new OrderedDictionary<Guid, Player>();
+            Game game = null;
 
             JsonObject MakeGameJson()
             {
@@ -131,18 +129,19 @@ namespace ColocDuty
 
             JsonObject MakeStateJson()
             {
-                var jsonState = new JsonObject();
-                jsonState.Add("name", isInGame ? "inGame" : "waiting");
+                if (game != null) return game.MakeStateJson();
 
+                var jsonState = new JsonObject();
+                jsonState.Add("name", "waiting");
                 return jsonState;
             }
 
-            void Kick(ColocPeer peer, string reason)
+            void Kick(Peer peer, string reason)
             {
-                _networkOutQueue.Add(new NetworkOutEvent { Peers = new ColocPeer[] { peer }, KickReason = reason, Type = NetworkOutEventType.KickPeer });
+                _networkOutQueue.Add(new NetworkOutEvent { Peers = new Peer[] { peer }, KickReason = reason, Type = NetworkOutEventType.KickPeer });
             }
 
-            void HandleMessage(ColocPeer peer, string type, JsonObject inJson)
+            void HandleMessage(Peer peer, string type, JsonObject inJson)
             {
                 switch (type)
                 {
@@ -222,7 +221,7 @@ namespace ColocDuty
                             }
                         }
 
-                        peer.Player = new ColocPlayer(Guid.NewGuid(), (string)jsonUsername, peer);
+                        peer.Player = new Player(Guid.NewGuid(), (string)jsonUsername, peer);
                         players.Add(peer.Player.Guid, peer.Player);
 
                         {
@@ -247,7 +246,7 @@ namespace ColocDuty
                         if (peer.Player == null) { Kick(peer, "Can't start without a player."); return; }
                         if (players.Count < 2) { /* Ignored */ return; }
 
-                        isInGame = true;
+                        game = new Game();
 
                         {
                             var broadcastJson = new JsonObject();
@@ -297,7 +296,7 @@ namespace ColocDuty
                             {
                                 player.Peer = null;
 
-                                if (!isInGame)
+                                if (game == null)
                                 {
                                     players.Remove(player.Guid);
 
