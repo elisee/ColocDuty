@@ -3,28 +3,27 @@ window.setup = {
   roomCode: window.location.pathname.substring("/play/".length)
 };
 
-for (let i = 0; i < characterCount; i++) imageUrls.push(`/Assets/Characters/${i}-Idle.png`);
+const baseImageUrls = [];
+
+for (let i = 0; i < characterCount; i++) baseImageUrls.push(`/Assets/Characters/${i}-Idle.png`);
 
 var cardTypes = Object.keys(cardTypeSettings);
 for (let i = 0; i < cardTypes.length; i++) {
-  imageUrls.push(`/Assets/Cards/Card_${cardTypes[i]}.png`);
+  baseImageUrls.push(`/Assets/Cards/Card_${cardTypes[i]}.png`);
 }
 
-imageUrls.push("/Assets/Cards/Money.png");
-
-// TODO: Preload all cards, based on input from the server
-imageUrls.push(`/Assets/Cards/Job/Cobaye Bebop.png`);
+baseImageUrls.push("/Assets/Cards/Money.png");
 
 if (setup.isViewer) {
-  imageUrls.push(`/Assets/Viewer/Background.jpg`);
-  imageUrls.push(`/Assets/Viewer/CharacterFrame.png`);
-  imageUrls.push(`/Assets/Viewer/BillIcon.png`);
-  imageUrls.push(`/Assets/Viewer/CardIcons.png`);
-  imageUrls.push("/Assets/Viewer/HygieneBarEmpty.png");
-  imageUrls.push("/Assets/Viewer/HygieneBarFull.png");
-  imageUrls.push("/Assets/Viewer/MoodBarEmpty.png");
-  imageUrls.push("/Assets/Viewer/MoodBarFull.png");
-  imageUrls.push("/Assets/Viewer/HomeIcon.png");
+  baseImageUrls.push(`/Assets/Viewer/Background.jpg`);
+  baseImageUrls.push(`/Assets/Viewer/CharacterFrame.png`);
+  baseImageUrls.push(`/Assets/Viewer/BillIcon.png`);
+  baseImageUrls.push(`/Assets/Viewer/CardIcons.png`);
+  baseImageUrls.push("/Assets/Viewer/HygieneBarEmpty.png");
+  baseImageUrls.push("/Assets/Viewer/HygieneBarFull.png");
+  baseImageUrls.push("/Assets/Viewer/MoodBarEmpty.png");
+  baseImageUrls.push("/Assets/Viewer/MoodBarFull.png");
+  baseImageUrls.push("/Assets/Viewer/HomeIcon.png");
 
   // Temporary debug button for quick testing
   $(".viewer .debug button").addEventListener("click", (event) => {
@@ -32,11 +31,12 @@ if (setup.isViewer) {
   });
 }
 
-loadImages(() => {
+loadImages(baseImageUrls, () => {
   setupCharacterSprites();
 
   connect();
-});
+})
+
 
 // Animate
 let previousTimestamp = 0;

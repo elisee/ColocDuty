@@ -109,15 +109,16 @@
         ctx.fillRect(x, y, cardThumbWidth, cardThumbHeight);
       }
 
-      // TODO: Use card.name
-      const cardArt = images[`/Assets/Cards/Job/${"Cobaye Bebop"}.png`];
+      const cardArt = images[`/Assets/Cards/Job/${card.name}.png`];
       const cardOverlay = images[`/Assets/Cards/Card_${card.type}.png`];
 
       const scale = cardOverlay.height / cardThumbHeight;
 
-      ctx.drawImage(
-        cardArt, 0, 0, cardArt.width, cardArt.height,
-        x + 125 / scale, y + 95 / scale, cardArt.width / cardOverlay.width * cardThumbWidth, cardArt.height / cardOverlay.height * cardThumbHeight);
+      if (cardArt != null) {
+        ctx.drawImage(
+          cardArt, 0, 0, cardArt.width, cardArt.height,
+          x + 125 / scale, y + 95 / scale, cardArt.width / cardOverlay.width * cardThumbWidth, cardArt.height / cardOverlay.height * cardThumbHeight);
+      }
 
       ctx.drawImage(
         cardOverlay, 0, 0, cardOverlay.width, cardOverlay.height,
@@ -125,15 +126,16 @@
     }
 
     function drawBigCard(card, x, y) {
-      // TODO: Use card.name
-      const cardArt = images[`/Assets/Cards/Job/${"Cobaye Bebop"}.png`];
+      const cardArt = images[`/Assets/Cards/Job/${card.name}.png`];
       const cardOverlay = images[`/Assets/Cards/Card_${card.type}.png`];
 
       const scale = cardOverlay.height / bigCardHeight;
 
-      ctx.drawImage(
-        cardArt, 0, 0, cardArt.width, cardArt.height,
-        x + 125 / scale, y + 95 / scale, cardArt.width / cardOverlay.width * bigCardWidth, cardArt.height / cardOverlay.height * bigCardHeight);
+      if (cardArt != null) {
+        ctx.drawImage(
+          cardArt, 0, 0, cardArt.width, cardArt.height,
+          x + 125 / scale, y + 95 / scale, cardArt.width / cardOverlay.width * bigCardWidth, cardArt.height / cardOverlay.height * bigCardHeight);
+      }
 
       ctx.drawImage(
         cardOverlay, 0, 0, cardOverlay.width, cardOverlay.height,

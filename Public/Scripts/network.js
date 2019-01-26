@@ -29,10 +29,6 @@ function onSocketMessage(event) {
 
   switch (json.type) {
     case "hello":
-      hide($(".loading"));
-      setVisible($(".viewer"), setup.isViewer);
-      setVisible($(".player"), !setup.isViewer);
-
       networkData.players = json.players;
       networkData.game = json.game;
       networkData.selfPlayer = json.selfPlayer;
@@ -44,6 +40,19 @@ function onSocketMessage(event) {
         window.localStorage.setItem("selfGuid", networkData.selfPlayer.guid);
         engine.applyPlayerState();
       }
+
+      const cardsImageUrls = [];
+      for (var i = 0; i < json.cardPaths.length; i++) {
+        cardsImageUrls.push(`/Assets/Cards/${json.cardPaths[i]}.png`);
+      }
+
+      loadImages(cardsImageUrls, () => {
+        hide($(".loading"));
+
+        setVisible($(".viewer"), setup.isViewer);
+        setVisible($(".player"), !setup.isViewer);
+      });
+
       break;
 
     case "whoDis":

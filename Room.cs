@@ -155,6 +155,8 @@ namespace ColocDuty
                             var outJson = new JsonObject();
                             outJson.Add("type", "hello");
                             outJson.Add("players", MakePlayersJson());
+                            outJson.Add("cardPaths", Game.CardPaths);
+
                             if (game != null) outJson.Add("game", game.MakeJson());
                             SendJson(peer, outJson);
                             return;
@@ -170,6 +172,7 @@ namespace ColocDuty
                                 var outJson = new JsonObject();
                                 outJson.Add("type", "hello");
                                 outJson.Add("players", MakePlayersJson());
+                                outJson.Add("cardPaths", Game.CardPaths);
                                 if (game != null) outJson.Add("game", game.MakeJson());
                                 outJson.Add("selfPlayer", peer.Player.MakeSelfJson());
                                 if (game != null) outJson.Add("selfGame", game.PlayerStates[peer.Player].MakeSelfJson());
@@ -228,6 +231,7 @@ namespace ColocDuty
                             var outJson = new JsonObject();
                             outJson.Add("type", "hello");
                             outJson.Add("players", MakePlayersJson());
+                            outJson.Add("cardPaths", Game.CardPaths);
                             outJson.Add("selfPlayer", peer.Player.MakeSelfJson());
                             SendJson(peer, outJson);
                             _activePeers.Add(peer);

@@ -10,6 +10,7 @@ namespace ColocDuty.InGame
     class Game
     {
         public static readonly List<CardData> CardDatas = new List<CardData>();
+        public static readonly JsonArray CardPaths = new JsonArray();
 
         public static void LoadCards(string cardsDatabasePath, CancellationToken shutdownToken)
         {
@@ -42,7 +43,7 @@ namespace ColocDuty.InGame
                     var line = reader.ReadLine();
                     var values = line.Split('\t');
 
-                    var name = values[nameColumnIndex];
+                    var name = values[nameColumnIndex].Trim();
                     if (string.IsNullOrWhiteSpace(name)) continue;
 
                     var action = values[actionColumnIndex];
@@ -64,6 +65,8 @@ namespace ColocDuty.InGame
                         HygieneModifier = hygieneModifier,
                         MoodModifier = moodModifier
                     });
+
+                    CardPaths.Add($"{type}/{name}");
                 }
             }
         }

@@ -6,8 +6,6 @@ const characterSize = 256;
 const characterCount = 4;
 const characterSprites = [];
 
-const imageUrls = [];
-
 const cardTypeSettings = {
   "Event": { color: "#ffc15f" },
   "Hygiene": { color: "#44dab0" },
@@ -17,7 +15,7 @@ const cardTypeSettings = {
   "Mood": { color: "#ffd45e" },
 };
 
-function loadImages(callback) {
+function loadImages(imageUrls, callback) {
   let imageQueue = imageUrls.length;
 
   for (const url of imageUrls) {
@@ -28,6 +26,11 @@ function loadImages(callback) {
       imageQueue--;
       if (imageQueue === 0) callback();
     });
+
+    image.addEventListener("error", (event) => {
+      imageQueue--;
+      if (imageQueue === 0) callback();
+    })
   }
 }
 
