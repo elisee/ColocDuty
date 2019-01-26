@@ -75,7 +75,6 @@ function onSocketMessage(event) {
   switch (json.type) {
     case "helloViewer":
       hide($(".loading"));
-      hide($(".join"));
       show($(".viewer"));
       $(".gameUrl").textContent = window.location.host + "/play/" + roomCode;
       $(".gameUrl").href = window.location.protocol + "//" + window.location.host + "/play/" + roomCode;
@@ -87,9 +86,7 @@ function onSocketMessage(event) {
     case "helloPlayer":
       window.localStorage.setItem("colocGuid", json.guid);
       hide($(".loading"));
-      hide($(".join"));
       show($(".player"));
-      $(".player .waiting .username").textContent = json.username;
 
       gameData = json.data;
       applyPlayerState();
@@ -97,9 +94,9 @@ function onSocketMessage(event) {
 
     case "plzJoin":
       hide($(".loading"));
-      show($(".join"));
-
-      $(".join .username").focus();
+      show($(".player"));
+      show($(".player .waiting"));
+      $(".player .waiting .username").focus();
       break;
 
     case "addPlayer":
@@ -121,7 +118,6 @@ function onSocketMessage(event) {
 }
 
 function onSocketClose(event) {
-  hide($(".join"));
   hide($(".viewer"));
   hide($(".player"));
   hide($(".loading"));
@@ -190,8 +186,8 @@ function animate(timestamp) {
   const ms = timestamp - previousTimestamp;
   previousTimestamp = timestamp;
 
-  if (!$(".join").hidden) animateCharacterSelector(ms);
   if (!$(".viewer .inGame").hidden) animateViewerInGame(ms);
+  if (!$(".player .waiting").hidden) animatePlayerWaiting(ms);
   if (!$(".player .inGame").hidden) animatePlayerInGame(ms);
 }
 
@@ -204,22 +200,6 @@ function lerp(a, b, v) {
 function clamp(v, min, max) {
   return Math.max(min, Math.min(v, max));
 }
-
-// Join
-const joinForm = $(".join");
-joinForm.addEventListener("submit", (event) => {
-  if (!joinForm.checkValidity()) return;
-  event.preventDefault();
-
-  hide($(".join"));
-  show($(".loading"));
-  send({ "type": "joinAsPlayer", "username": $(".join .username").value });
-});
-
-const charSelectorCanvas = $(".join .characterSelector");
-const charSelectorContext = charSelectorCanvas.getContext("2d");
-
-const charSize = 256;
 
 function makeSprite(image, width, height, frameCount, fps) {
   return { image, width, height, framesPerRow: image.width / width, frameCount, frameDuration: 1000 / fps, time: 0 };
@@ -236,53 +216,6 @@ function drawSprite(ctx, sprite, x, y) {
 
   ctx.drawImage(sprite.image, column * sprite.width, row * sprite.height, sprite.width, sprite.height, x, y, sprite.width, sprite.height);
 }
-
-const charSelector = {
-  sprites: [],
-  offset: 0,
-  dragStart: null,
-};
-
-function setupCharacterSelector() {
-  for (let i = 0; i < characterCount; i++) {
-    const image = images[`/Assets/Characters/${i}-Idle.png`];
-    charSelector.sprites.push(makeSprite(image, charSize, charSize, 12, 12));
-  }
-}
-
-function animateCharacterSelector(ms) {
-  tickSprites(charSelector.sprites, ms);
-
-  if (charSelector.dragStart == null) {
-    const closest = clamp(Math.round(charSelector.offset / charSize), 0, characterCount - 1) * charSize;
-    charSelector.offset = lerp(charSelector.offset, closest, 0.15);
-  }
-
-  const canvas = charSelectorCanvas;
-  const ctx = charSelectorContext;
-
-  ctx.fillStyle = "#c55";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.save();
-  ctx.translate(canvas.width / 2 - charSize / 2, 0);
-
-  for (let i = 0; i < characterCount; i++) {
-    drawSprite(ctx, charSelector.sprites[i], i * charSize - charSelector.offset, i);
-  }
-
-  ctx.restore();
-}
-
-touch(charSelectorCanvas, (touch) => {
-  if (touch.started) {
-    charSelector.dragStart = touch.x + charSelector.offset;
-  } else if (touch.ended) {
-    charSelector.dragStart = null;
-  } else {
-    charSelector.offset = charSelector.dragStart - touch.x;
-  }
-});
 
 // Viewer
 function buildPlayerList() {
@@ -313,12 +246,73 @@ function animateViewerInGame() {
 }
 
 // Player
-const startForm = $(".player .waiting");
-startForm.addEventListener("submit", (event) => {
-  if (!startForm.checkValidity()) return;
-  event.preventDefault();
+let isReady = false;
 
-  send({ type: "start" });
+const charSelectorCanvas = $(".player .waiting .characterSelector");
+const charSelectorContext = charSelectorCanvas.getContext("2d");
+
+const charSize = 256;
+
+const charSelector = {
+  sprites: [],
+  offset: 0,
+  dragStart: null,
+};
+
+touch(charSelectorCanvas, (touch) => {
+  if (isReady) return;
+
+  if (touch.started) {
+    charSelector.dragStart = touch.x + charSelector.offset;
+  } else if (touch.ended) {
+    charSelector.dragStart = null;
+  } else {
+    charSelector.offset = charSelector.dragStart - touch.x;
+  }
+});
+
+function setupCharacterSelector() {
+  for (let i = 0; i < characterCount; i++) {
+    const image = images[`/Assets/Characters/${i}-Idle.png`];
+    charSelector.sprites.push(makeSprite(image, charSize, charSize, 12, 12));
+  }
+}
+
+function animatePlayerWaiting(ms) {
+  tickSprites(charSelector.sprites, ms);
+
+  if (charSelector.dragStart == null) {
+    const closest = clamp(Math.round(charSelector.offset / charSize), 0, characterCount - 1) * charSize;
+    charSelector.offset = lerp(charSelector.offset, closest, 0.15);
+  }
+
+  const canvas = charSelectorCanvas;
+  const ctx = charSelectorContext;
+
+  ctx.fillStyle = "#c55";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.translate(canvas.width / 2 - charSize / 2, 0);
+
+  for (let i = 0; i < characterCount; i++) {
+    drawSprite(ctx, charSelector.sprites[i], i * charSize - charSelector.offset, i);
+  }
+
+  ctx.restore();
+}
+
+const waitingButtonElt = $(".player .waiting button");
+
+waitingButtonElt.addEventListener("click", (event) => {
+  if (!isReady) {
+    isReady = true;
+    $(".player .waiting .username").disabled = true;
+    waitingButtonElt.textContent = "Start!";
+    send({ "type": "joinAsPlayer", "username": $(".player .waiting .username").value });
+  } else {
+    send({ type: "start" });
+  }
 });
 
 function applyPlayerState() {

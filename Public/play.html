@@ -9,19 +9,6 @@
 </head>
 
 <body>
-  <form class="join" hidden>
-    <div>
-      <div class="header">Your name</div>
-      <div><input type="text" class="username" required minlength="2" maxlength="20"></div>
-    </div>
-
-    <div>
-        <div class="header">Choose character</div>
-      <canvas class="characterSelector" width="384" height="256"></canvas>
-    </div>
-
-    <div><button>Ready!</button></div>
-  </form>
   <div class="viewer" hidden>
     <div class="waiting" hidden>
       <div>Join the game at:</div>
@@ -37,11 +24,19 @@
     </div>
   </div>
   <div class="player" hidden>
-    <form class="waiting" hidden>
-      <div class="header">Hello <span class="username"></span>!</div>
-      <div class="text">Click start when all players have joined.</div>
-      <div><button>Start!</button></div>
-    </form>
+    <div class="waiting" hidden>
+      <div>
+        <div class="header">Your name</div>
+        <div><input type="text" class="username" required minlength="2" maxlength="20"></div>
+      </div>
+
+      <div>
+        <div class="header">Choose character</div>
+        <canvas class="characterSelector" width="384" height="256"></canvas>
+      </div>
+
+      <div><button>Ready!</button></div>
+    </div>
     <div class="inGame" hidden>
       <canvas></canvas>
     </div>

@@ -22,40 +22,6 @@ body > div, body > form {
   font-size: 5em;
 }
 
-/* Join */
-.join {
-  text-align: center;
-  background: #800;
-}
-
-.join .header {
-  background: #ccc;
-  padding: 1em;
-  font-size: 1.5em;
-}
-
-.join .username {
-  border: 0;
-  background: #444;
-  font-size: 2em;
-  text-align: center;
-  padding: 0.5em;
-  width: 100%;
-  color: #eee;
-}
-
-.join canvas {
-  max-width: 100%;
-}
-
-.join button {
-  border: 0;
-  background: #cf4;
-  width: 100%;
-  font-size: 2em;
-  padding: 0.5em;
-}
-
 /* Viewer */
 .viewer {
   display: flex;
@@ -85,21 +51,33 @@ body > div, body > form {
 
 .player .waiting {
   text-align: center;
-  background: #740;
+  background: #800;
 }
 
-.player .header {
+.player .waiting .header {
   background: #ccc;
   padding: 1em;
   font-size: 1.5em;
 }
 
-.player .waiting .text {
-  padding: 1em;
+.player .waiting .username {
+  border: 0;
+  background: #444;
+  font-size: 2em;
+  text-align: center;
+  padding: 0.5em;
+  width: 100%;
+  color: #eee;
+}
+
+.player .waiting canvas {
+  max-width: 100%;
 }
 
 .player .waiting button {
+  border: 0;
+  background: #cf4;
   width: 100%;
+  font-size: 2em;
   padding: 0.5em;
-  font-size: 1.5em;
 }
