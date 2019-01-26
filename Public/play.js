@@ -1,31 +1,14 @@
-// Loading
-const imageUrls = [];
-const images = {};
+window.setup = {
+  isViewer: window.location.pathname.startsWith("/view/"),
+  roomCode: window.location.pathname.substring("/play/".length)
+};
 
-function loadImages(callback) {
-  let imageQueue = imageUrls.length;
-
-  for (const url of imageUrls) {
-    const image = new Image();
-    image.src = url;
-    image.addEventListener("load", () => {
-      images[url] = image;
-      imageQueue--;
-      if (imageQueue === 0) callback();
-    });
-  }
+// Temporary debug button for quick testing
+if (setup.isViewer) {
+  $(".viewer .debug button").addEventListener("click", (event) => {
+    window.open(window.location.protocol + "//" + window.location.host + "/play/" + setup.roomCode, '_blank');
+  })
 }
-
-const characterCount = 7;
-
-imageUrls.push(`/Assets/Background.jpg`);
-imageUrls.push(`/Assets/Cards/Back.jpg`);
-
-for (let i = 0; i < characterCount; i++) {
-  imageUrls.push(`/Assets/Characters/${i}-Idle.png`);
-}
-
-const isViewer = window.location.pathname.startsWith("/view/");
 
 loadImages(() => {
   setupCharacterSprites();
@@ -34,11 +17,10 @@ loadImages(() => {
 });
 
 // Socket
-const roomCode = window.location.pathname.substring("/play/".length);
 let socket = null;
 
 function connect() {
-  socket = new WebSocket("ws://" + window.location.host + "/room/" + roomCode);
+  socket = new WebSocket("ws://" + window.location.host + "/room/" + setup.roomCode);
   socket.addEventListener("open", onSocketOpen);
   socket.addEventListener("message", onSocketMessage);
   socket.addEventListener("close", onSocketClose);
@@ -47,15 +29,15 @@ function connect() {
 function send(json) { socket.send(JSON.stringify(json)); }
 
 function onSocketOpen(event) {
-  if (isViewer) send({ type: "hello", viewerMode: true });
+  if (setup.isViewer) send({ type: "hello", viewerMode: true });
   else {
     const guid = window.localStorage.getItem("colocGuid");
     send({ type: "hello", guid });
   }
 }
 
-let gameData = null;
-let selfData = null;
+window.gameData = null;
+window.selfData = null;
 
 function onSocketMessage(event) {
   const json = JSON.parse(event.data);
@@ -101,13 +83,13 @@ function onSocketMessage(event) {
 
     case "setState":
       gameData.state = json.state;
-      if (isViewer) applyViewerState();
+      if (setup.isViewer) applyViewerState();
       else applyPlayerState();
       break;
 
     case "setTurnPhase":
       gameData.state.phase = json.phase;
-      if (isViewer) applyViewerState();
+      if (setup.isViewer) applyViewerState();
       else applyPlayerState();
       break;
   }
@@ -136,112 +118,6 @@ function animate(timestamp) {
 }
 
 animate(0);
-
-function lerp(a, b, v) {
-  return a + (b - a) * v;
-}
-
-function clamp(v, min, max) {
-  return Math.max(min, Math.min(v, max));
-}
-
-function makeSprite(image, width, height, frameCount, fps) {
-  return { image, width, height, framesPerRow: image.width / width, frameCount, frameDuration: 1000 / fps, time: 0 };
-}
-
-function tickSprites(sprites, ms) {
-  for (const sprite of sprites) sprite.time = (sprite.time + ms) % (sprite.frameCount * sprite.frameDuration);
-}
-
-function drawSprite(ctx, sprite, x, y, destWidth, destHeight) {
-  const index = Math.floor(sprite.time / sprite.frameDuration);
-  const column = index % sprite.framesPerRow;
-  const row = Math.floor(index / sprite.framesPerRow);
-
-  if (destWidth == null) destWidth = sprite.width;
-  if (destHeight == null) destHeight = sprite.height;
-
-  ctx.drawImage(sprite.image, column * sprite.width, row * sprite.height, sprite.width, sprite.height, x, y, destWidth, destHeight);
-}
-
-const characterSprites = [];
-
-function setupCharacterSprites() {
-  for (let i = 0; i < characterCount; i++) {
-    const image = images[`/Assets/Characters/${i}-Idle.png`];
-    characterSprites.push(makeSprite(image, charSize, charSize, 12, 12));
-  }
-}
-
-// Viewer
-if (isViewer) {
-  $(".viewer .debug button").addEventListener("click", (event) => {
-    window.open(window.location.protocol + "//" + window.location.host + "/play/" + roomCode, '_blank');
-  })
-}
-
-function applyViewerState() {
-  setVisible($(".viewer .debug"), gameData.state.name == "waiting")
-}
-
-const viewerCanvas = $(".viewer canvas");
-const viewerContext = viewerCanvas.getContext("2d");
-
-function animateViewer(ms) {
-  tickSprites(characterSprites, ms);
-
-  const canvas = viewerCanvas;
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
-  const ctx = viewerContext;
-
-  ctx.fillStyle = "#c55";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.save();
-
-  const backgroundImage = images[`/Assets/Background.jpg`];
-  ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-
-  if (gameData.state.name == "waiting") {
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-
-    ctx.font = "40px Montserrat";
-    ctx.fillText(`Join the game with the code:`, canvas.width / 2, canvas.height / 2)
-
-    ctx.font = "50px Montserrat";
-    ctx.fillText(roomCode, canvas.width / 2, canvas.height / 2 + 60);
-  }
-
-  const screenCharSize = charSize * 0.8;
-  const screenCharPadding = screenCharSize + 30;
-
-  for (let i = 0; i < gameData.players.length; i++) {
-    const player = gameData.players[i];
-    drawSprite(ctx, characterSprites[player.characterIndex], 0, i * screenCharPadding, screenCharSize, screenCharSize);
-
-    ctx.font = "30px Montserrat";
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-    ctx.fillText(player.username, 0.5 * screenCharSize, i * screenCharPadding + 35);
-
-    const cardBackImage = images[`/Assets/Cards/Back.jpg`];
-    const cardBackScale = 40;
-
-    const { handCardCount } = gameData.state.playerStates[player.username];
-    for (let j = 0; j < handCardCount; j++) {
-      const x = screenCharSize / 2 + (j - handCardCount / 2) * cardBackImage.width / cardBackScale;
-      const y = i * screenCharPadding + screenCharSize * 0.8;
-
-      ctx.drawImage(
-        cardBackImage, 0, 0, cardBackImage.width, cardBackImage.height,
-        x, y, cardBackImage.width / cardBackScale, cardBackImage.height / cardBackScale);
-    }
-  }
-
-  ctx.restore();
-}
 
 // Player
 let isReady = false;
