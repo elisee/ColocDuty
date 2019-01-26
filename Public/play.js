@@ -103,19 +103,16 @@ function onSocketMessage(event) {
       break;
 
     case "addPlayer":
-      if (gameData == null) break;
       gameData.players.push(json.username);
       buildPlayerList();
       break;
 
     case "removePlayer":
-      if (gameData == null) break;
       removeFromList(gameData.players, json.username);
       buildPlayerList();
       break;
 
     case "setState":
-      if (gameData == null) break;
       gameData.state = json.state;
       if (isViewer) applyViewerState();
       else applyPlayerState();

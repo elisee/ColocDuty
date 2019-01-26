@@ -112,7 +112,7 @@ namespace ColocDuty
             var peers = new List<ColocPeer>();
             var players = new OrderedDictionary<Guid, ColocPlayer>();
 
-            var viewerPeers = new List<ColocPeer>();
+            var activePeers = new List<ColocPeer>();
 
             var isInGame = false;
 
@@ -152,7 +152,7 @@ namespace ColocDuty
                         if (inJson.TryGetValue("viewerMode", out var jsonViewerMode))
                         {
                             peer.IsViewer = true;
-                            viewerPeers.Add(peer);
+                            activePeers.Add(peer);
 
                             var outJson = new JsonObject();
                             outJson.Add("type", "helloViewer");
@@ -176,12 +176,13 @@ namespace ColocDuty
                                 outJson.Add("username", peer.Player.Username);
                                 outJson.Add("data", MakeGameJson());
                                 SendJSON(peer, outJson);
+                                activePeers.Add(peer);
 
                                 {
                                     var broadcastJson = new JsonObject();
                                     broadcastJson.Add("type", "addPlayer");
                                     broadcastJson.Add("username", peer.Player.Username);
-                                    SendJSON(peers, broadcastJson);
+                                    SendJSON(activePeers, broadcastJson);
                                 }
                                 return;
                             }
@@ -231,13 +232,14 @@ namespace ColocDuty
                             outJson.Add("username", peer.Player.Username);
                             outJson.Add("data", MakeGameJson());
                             SendJSON(peer, outJson);
+                            activePeers.Add(peer);
                         }
 
                         {
                             var broadcastJson = new JsonObject();
                             broadcastJson.Add("type", "addPlayer");
                             broadcastJson.Add("username", peer.Player.Username);
-                            SendJSON(peers, broadcastJson);
+                            SendJSON(activePeers, broadcastJson);
                         }
                         break;
 
@@ -251,7 +253,7 @@ namespace ColocDuty
                             var broadcastJson = new JsonObject();
                             broadcastJson.Add("type", "setState");
                             broadcastJson.Add("state", MakeStateJson());
-                            SendJSON(peers, broadcastJson);
+                            SendJSON(activePeers, broadcastJson);
                         }
                         break;
                 }
@@ -287,6 +289,7 @@ namespace ColocDuty
 
                         case NetworkInEventType.RemovePeer:
                             peers.Remove(@event.Peer);
+                            activePeers.Remove(@event.Peer);
 
                             var player = @event.Peer.Player;
 
@@ -301,11 +304,9 @@ namespace ColocDuty
                                     var broadcastJson = new JsonObject();
                                     broadcastJson.Add("type", "removePlayer");
                                     broadcastJson.Add("username", player.Username);
-                                    SendJSON(peers, broadcastJson);
+                                    SendJSON(activePeers, broadcastJson);
                                 }
                             }
-
-                            viewerPeers.Remove(@event.Peer);
 
 #if !DEBUG
                             if (peers.Count == 0)
