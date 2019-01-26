@@ -1,4 +1,6 @@
 {
+  const playerColors = [ "#0ca0e6", "#9662e0", "#f32972", "#92e8f9", "#f5922a", "#69ce4a" ];
+
   window.engine.applyViewerState = () => {
     setVisible($(".viewer .debug"), networkData.game == null);
   };
@@ -27,6 +29,11 @@
     const bg = images[`/Assets/Background.jpg`];
     ctx.drawImage(bg, (scaledWidth - bg.width) / 2, 0);
 
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, scaledWidth, refHeight);
+    ctx.globalAlpha = 1.0;
+
     drawState();
     drawPlayers();
 
@@ -35,55 +42,79 @@
 
   function drawState() {
     if (networkData.game == null) {
-      ctx.fillStyle = "#444";
-      ctx.fillRect(scaledWidth / 2 - 400, refHeight / 2 - 100, 800, 200);
+      // ctx.fillStyle = "#444";
+      // ctx.fillRect(scaledWidth / 2 - 400, refHeight / 2 - 100, 800, 200);
 
-      ctx.fillStyle = "#fff";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-
-      ctx.font = "40px Montserrat";
-      ctx.fillText(`Join the game with the code:`, scaledWidth / 2, refHeight / 2 - 40);
-
-      ctx.font = "50px Montserrat";
+      
+      ctx.fillStyle = "#e7ad64";
+      ctx.font = "lighter 40px Open Sans";
+      ctx.fillText(`YOUR ROOM CODE IS`, scaledWidth / 2, refHeight / 2 - 40);
+      
+      ctx.fillStyle = "#fff";
+      ctx.font = "900 96px Montserrat";
       ctx.fillText(setup.roomCode, scaledWidth / 2, refHeight / 2 + 40);
     } else {
       ctx.fillStyle = "#fff";
       ctx.textAlign = "center";
 
       ctx.font = "40px Montserrat";
-      ctx.fillText(networkData.game.phase, scaledWidth / 2, refHeight / 2);
+      ctx.fillText(networkData.game.phase.name, scaledWidth / 2, refHeight / 2);
     }
   }
 
   function drawPlayers() {
-    const screenCharSize = charSize * 0.8;
-    const screenCharPadding = screenCharSize + 30;
+    const horizontalMargin = 40;
+    const topMargin = 60;
+    const entryHeight = characterSize + horizontalMargin;
+    const entryWidth = characterSize;
+
+    const cartridgeSize = characterSize * 0.9;
+    const cartridgeOffset = (characterSize - cartridgeSize) / 2;
+
+    const frameImage = images[`/Assets/CharacterFrame.png`];
 
     for (let i = 0; i < networkData.players.length; i++) {
       const player = networkData.players[i];
-      drawSprite(ctx, characterSprites[player.characterIndex], 0, i * screenCharPadding, screenCharSize, screenCharSize);
 
-      ctx.font = "30px Montserrat";
-      ctx.fillStyle = "#fff";
+      const playerX = (i % 2 == 0) ? horizontalMargin : (scaledWidth - entryWidth - horizontalMargin);
+      const playerY = topMargin + Math.floor(i / 2) * entryHeight;
+
+      ctx.drawImage(frameImage, 0, 0, frameImage.width, frameImage.height, playerX + cartridgeOffset, playerY + cartridgeOffset, cartridgeSize, cartridgeSize);
+      
+      drawSprite(ctx, characterSprites[player.characterIndex], playerX, playerY, characterSize, characterSize);
+
+      ctx.font = "bold 36px Montserrat";
+      ctx.fillStyle = playerColors[i];
       ctx.textAlign = "center";
-      ctx.fillText(player.username, 0.5 * screenCharSize, i * screenCharPadding + 35);
+      ctx.fillText(player.username, playerX + 0.5 * characterSize, playerY - 15);
 
-      // Draw player's hidden hand
       if (networkData.game != null) {
+        // Draw player's hidden hand
         const cardBackImage = images[`/Assets/Cards/Back.jpg`];
         const cardBackScale = 40;
 
         const { handCardCount } = networkData.game.playerStates[player.username];
         for (let j = 0; j < handCardCount; j++) {
-          const x = screenCharSize / 2 + (j - handCardCount / 2) * cardBackImage.width / cardBackScale;
-          const y = i * screenCharPadding + screenCharSize * 0.8;
+          const x = characterSize / 2 + (j - handCardCount / 2) * cardBackImage.width / cardBackScale;
+          const y = playerY + characterSize * 0.8;
 
           ctx.drawImage(
             cardBackImage, 0, 0, cardBackImage.width, cardBackImage.height,
             x, y, cardBackImage.width / cardBackScale, cardBackImage.height / cardBackScale);
+        }
+
+        // Draw enveloppe
+        const { phase } = networkData.game;
+
+        if (phase.name === "PayRent") {
+          if (phase.rentPendingPlayers.indexOf(player.username)) {
+            ctx.fillStyle = "#f00";
+            ctx.fillRect(playerX, playerY, 64, 64);
           }
         }
+      }
     }
   }
 }

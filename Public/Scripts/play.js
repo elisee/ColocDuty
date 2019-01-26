@@ -26,8 +26,8 @@
     tickSprites(characterSprites, ms);
 
     if (charSelector.dragStart == null) {
-      charSelector.selectedIndex = clamp(Math.round(charSelector.offset / charSize), 0, characterCount - 1);
-      const closest = charSelector.selectedIndex * charSize;
+      charSelector.selectedIndex = clamp(Math.round(charSelector.offset / characterSize), 0, characterCount - 1);
+      const closest = charSelector.selectedIndex * characterSize;
       charSelector.offset = lerp(charSelector.offset, closest, 0.15);
     }
 
@@ -40,15 +40,15 @@
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.save();
-    ctx.translate(canvas.width / 2 - charSize / 2, 0);
+    ctx.translate(canvas.width / 2 - characterSize / 2, 0);
 
     if (isReady) {
       drawSprite(ctx, characterSprites[charSelector.selectedIndex], 0, 0);
     } else {
       for (let i = 0; i < characterCount; i++) {
         ctx.fillStyle = i % 2 == 0 ? "#aaa" : "#bbb";
-        ctx.fillRect(i * charSize - charSelector.offset, 0, charSize, charSize);
-        drawSprite(ctx, characterSprites[i], i * charSize - charSelector.offset, 0);
+        ctx.fillRect(i * characterSize - charSelector.offset, 0, characterSize, characterSize);
+        drawSprite(ctx, characterSprites[i], i * characterSize - charSelector.offset, 0);
       }
     }
 

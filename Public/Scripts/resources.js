@@ -2,7 +2,7 @@ const backgroundColor = "#00223e";
 
 const images = {};
 
-const charSize = 256;
+const characterSize = 256;
 const characterCount = 4;
 const characterSprites = [];
 
@@ -10,6 +10,8 @@ const imageUrls = [];
 
 imageUrls.push(`/Assets/Background.jpg`);
 imageUrls.push(`/Assets/Cards/Back.jpg`);
+
+imageUrls.push(`/Assets/CharacterFrame.png`);
 
 for (let i = 0; i < characterCount; i++) {
   imageUrls.push(`/Assets/Characters/${i}-Idle.png`);
@@ -32,6 +34,6 @@ function loadImages(callback) {
 function setupCharacterSprites() {
   for (let i = 0; i < characterCount; i++) {
     const image = images[`/Assets/Characters/${i}-Idle.png`];
-    characterSprites.push(makeSprite(image, charSize, charSize, 12, 12));
+    characterSprites.push(makeSprite(image, characterSize, characterSize, 12, 12));
   }
 }

@@ -73,7 +73,7 @@ function onSocketMessage(event) {
       else engine.applyPlayerState();
       break;
 
-    case "setTurnPhase":
+    case "goInGamePhase":
       networkData.game.phase = json.phase;
       if (setup.isViewer) engine.applyViewerState();
       else engine.applyPlayerState();

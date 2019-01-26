@@ -1,8 +1,6 @@
 ﻿using Microsoft.Collections.Extensions;
-using System;
 using System.Collections.Generic;
 using System.Json;
-using System.Text;
 
 namespace ColocDuty.InGame
 {
@@ -24,10 +22,18 @@ namespace ColocDuty.InGame
 
         const double FadeInDuration = 1.0;
 
-        public const int StartDeckSize = 10;
-        public const int StartHandSize = 5;
+        public const int StartDeckSize = 14;
+        public const int StartHandSize = 7;
 
         public readonly OrderedDictionary<Player, PlayerState> PlayerStates = new OrderedDictionary<Player, PlayerState>();
+
+        #region Pay rent Phase
+        readonly List<Player> _rentPendingPlayers = new List<Player>();
+        #endregion
+
+        #region Market Phase
+
+        #endregion
 
         public Game(Room room)
         {
@@ -53,16 +59,31 @@ namespace ColocDuty.InGame
         public JsonObject MakeJson()
         {
             var json = new JsonObject();
-            json.Add("phase", _phase.ToString());
+            json.Add("phase", MakePhaseJson());
+            json.Add("playerStates", MakePlayerStatesJson());
+            return json;
+        }
 
-            var jsonPlayerStates = new JsonObject();
-            json.Add("playerStates", jsonPlayerStates);
+        public JsonObject MakePhaseJson()
+        {
+            var json = new JsonObject();
+            json.Add("name", _phase.ToString());
 
-            foreach (var (player, state) in PlayerStates)
+            switch (_phase)
             {
-                jsonPlayerStates.Add(player.Username, state.MakePublicJson());
+                case TurnPhase.PayRent:
+                    var jsonRentPendingPlayers = new JsonArray();
+                    json.Add("rentPendingPlayers", jsonRentPendingPlayers);
+                    break;
             }
 
+            return json;
+        }
+
+        public JsonObject MakePlayerStatesJson()
+        {
+            var json = new JsonObject();
+            foreach (var (player, state) in PlayerStates) json.Add(player.Username, state.MakePublicJson());
             return json;
         }
 
@@ -76,6 +97,8 @@ namespace ColocDuty.InGame
                     if (_phaseTimer >= FadeInDuration)
                     {
                         SetPhase(TurnPhase.PayRent);
+                        _rentPendingPlayers.Clear();
+                        _rentPendingPlayers.AddRange(PlayerStates.Keys);
                     }
                     break;
 
@@ -99,9 +122,8 @@ namespace ColocDuty.InGame
             _phaseTimer = 0.0;
 
             var json = new JsonObject();
-            json.Add("type", "setTurnPhase");
-            json.Add("phase", _phase.ToString());
-
+            json.Add("type", "goInGamePhase");
+            json.Add("phase", MakePhaseJson());
             _room.BroadcastJson(json);
         }
     }
