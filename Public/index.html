@@ -13,19 +13,8 @@
 
   <button class="createRoom">Create room</button>
 
+  <script src="/utils.js"></script>
   <script>
-    const $ = document.querySelector.bind(document);
-    const $$ = document.querySelectorAll.bind(document);
-
-    function $make(tagName, parent, props) {
-      const elt = document.createElement(tagName);
-      if (parent != null) parent.appendChild(elt);
-      for (const key in props) elt[key] = props[key];
-      return elt;
-    }
-
-    const setVisible = (elt, visible) => elt.hidden = !visible;
-
     $(".createRoom").addEventListener("click", (event) => {
       event.preventDefault();
 
