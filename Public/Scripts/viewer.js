@@ -149,13 +149,14 @@
 
       ctx.font = "bold 36px Montserrat";
       ctx.fillStyle = playerColors[i];
+      ctx.textBaseline = "middle";
       ctx.textAlign = "center";
       ctx.fillText(player.username, playerX + 0.5 * characterSize, playerY - 15);
 
       if (networkData.game != null) {
         // Draw player's card count
         const { handCardCount } = networkData.game.playerStates[player.username];
-        if (handCardCount > 0) drawFrame(ctx, cardIcons, Math.min(handCardCount, 8), playerX + 192, playerY - 8, 128);
+        if (handCardCount > 0) drawFrame(ctx, cardIcons, Math.min(handCardCount - 1, 8), playerX + 192, playerY - 8, 128);
       }
     }
   }
