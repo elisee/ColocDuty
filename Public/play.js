@@ -50,6 +50,7 @@ function onSocketOpen(event) {
 }
 
 let gameData = null;
+let selfData = null;
 
 function onSocketMessage(event) {
   const json = JSON.parse(event.data);
@@ -61,7 +62,7 @@ function onSocketMessage(event) {
       $(".gameUrl").textContent = window.location.host + "/play/" + roomCode;
       $(".gameUrl").href = window.location.protocol + "//" + window.location.host + "/play/" + roomCode;
 
-      gameData = json.data;
+      gameData = json.gameData;
       applyViewerState();
       break;
 
@@ -70,7 +71,8 @@ function onSocketMessage(event) {
       hide($(".loading"));
       show($(".player"));
 
-      gameData = json.data;
+      gameData = json.gameData;
+      selfData = json.selfData;
       applyPlayerState();
       break;
 
@@ -82,12 +84,17 @@ function onSocketMessage(event) {
       break;
 
     case "addPlayer":
-      gameData.players.push(json.username);
+      gameData.players.push(json.data);
       buildPlayerList();
       break;
 
     case "removePlayer":
-      removeFromList(gameData.players, json.username);
+      for (const player of gameData.players) {
+        if (player.username === json.username) {
+          removeFromList(gameData.players, player);
+          break;
+        }
+      }
       buildPlayerList();
       break;
 
@@ -153,7 +160,7 @@ function buildPlayerList() {
   listElt.innerHTML = "";
 
   for (const player of gameData.players) {
-    $make("li", listElt, { textContent: player });
+    $make("li", listElt, { textContent: player.username });
   }
 }
 
@@ -187,7 +194,7 @@ const charSelector = {
   sprites: [],
   offset: 0,
   dragStart: null,
-  selected: 0
+  selectedIndex: 0
 };
 
 touch(charSelectorCanvas, (touch) => {
@@ -213,8 +220,8 @@ function animatePlayerWaiting(ms) {
   tickSprites(charSelector.sprites, ms);
 
   if (charSelector.dragStart == null) {
-    charSelector.selected = clamp(Math.round(charSelector.offset / charSize), 0, characterCount - 1);
-    const closest = charSelector.selected * charSize;
+    charSelector.selectedIndex = clamp(Math.round(charSelector.offset / charSize), 0, characterCount - 1);
+    const closest = charSelector.selectedIndex * charSize;
     charSelector.offset = lerp(charSelector.offset, closest, 0.15);
   }
 
@@ -230,7 +237,7 @@ function animatePlayerWaiting(ms) {
   ctx.translate(canvas.width / 2 - charSize / 2, 0);
 
   if (isReady) {
-    drawSprite(ctx, charSelector.sprites[charSelector.selected], 0, 0);
+    drawSprite(ctx, charSelector.sprites[charSelector.selectedIndex], 0, 0);
   } else {
     for (let i = 0; i < characterCount; i++) {
       ctx.fillStyle = i % 2 == 0 ? "#aaa" : "#bbb";
@@ -255,7 +262,7 @@ waitingButtonElt.addEventListener("click", (event) => {
     $(".player .waiting .username").disabled = true;
     waitingButtonElt.textContent = "Start!";
     waitingButtonElt.classList.add("start");
-    send({ "type": "joinAsPlayer", username });
+    send({ "type": "joinAsPlayer", username, characterIndex: charSelector.selectedIndex });
   } else {
     send({ type: "start" });
   }
@@ -267,5 +274,16 @@ function applyPlayerState() {
 }
 
 function animatePlayerInGame() {
-
+  switch (gameData.state.turnPhase) {
+    case "startTransition":
+      break;
+    case "payRent":
+      break;
+    case "marketTransition":
+      break;
+    case "market":
+      break;
+    case "endTransition":
+      break;
+  }
 }
