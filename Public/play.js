@@ -18,17 +18,22 @@ function loadImages(callback) {
 
 const characterCount = 7;
 
+imageUrls.push(`/Assets/Background.jpg`);
+imageUrls.push(`/Assets/Cards/Back.jpg`);
+
 for (let i = 0; i < characterCount; i++) {
   imageUrls.push(`/Assets/Characters/${i}-Idle.png`);
 }
 
+const isViewer = window.location.pathname.startsWith("/view/");
+
 loadImages(() => {
-  setupCharacterSelector();
+  setupCharacterSprites();
+
   connect();
 });
 
 // Socket
-const isViewer = window.location.pathname.startsWith("/view/");
 const roomCode = window.location.pathname.substring("/play/".length);
 let socket = null;
 
@@ -152,12 +157,24 @@ function tickSprites(sprites, ms) {
   for (const sprite of sprites) sprite.time = (sprite.time + ms) % (sprite.frameCount * sprite.frameDuration);
 }
 
-function drawSprite(ctx, sprite, x, y) {
+function drawSprite(ctx, sprite, x, y, destWidth, destHeight) {
   const index = Math.floor(sprite.time / sprite.frameDuration);
   const column = index % sprite.framesPerRow;
   const row = Math.floor(index / sprite.framesPerRow);
 
-  ctx.drawImage(sprite.image, column * sprite.width, row * sprite.height, sprite.width, sprite.height, x, y, sprite.width, sprite.height);
+  if (destWidth == null) destWidth = sprite.width;
+  if (destHeight == null) destHeight = sprite.height;
+
+  ctx.drawImage(sprite.image, column * sprite.width, row * sprite.height, sprite.width, sprite.height, x, y, destWidth, destHeight);
+}
+
+const characterSprites = [];
+
+function setupCharacterSprites() {
+  for (let i = 0; i < characterCount; i++) {
+    const image = images[`/Assets/Characters/${i}-Idle.png`];
+    characterSprites.push(makeSprite(image, charSize, charSize, 12, 12));
+  }
 }
 
 // Viewer
@@ -184,8 +201,52 @@ function applyViewerState() {
   }
 }
 
-function animateViewerInGame() {
+const viewerCanvas = $(".viewer .inGame canvas");
+const viewerContext = viewerCanvas.getContext("2d");
 
+function animateViewerInGame(ms) {
+  tickSprites(characterSprites, ms);
+
+  const canvas = viewerCanvas;
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+  const ctx = viewerContext;
+
+  ctx.fillStyle = "#c55";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+
+  const backgroundImage = images[`/Assets/Background.jpg`];
+  ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
+  const screenCharSize = charSize * 0.8;
+  const screenCharPadding = screenCharSize + 30;
+
+  for (let i = 0; i < gameData.players.length; i++) {
+    const player = gameData.players[i];
+    drawSprite(ctx, characterSprites[player.characterIndex], 0, i * screenCharPadding, screenCharSize, screenCharSize);
+
+    ctx.font = "30px Montserrat";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.fillText(player.username, 0.5 * screenCharSize, i * screenCharPadding + 35);
+
+    const cardBackImage = images[`/Assets/Cards/Back.jpg`];
+    const cardBackScale = 40;
+
+    const handCount = 4; // gameData.playerStates[player.username].handCount
+    for (let j = 0; j < handCount; j++) {
+      const x = screenCharSize / 2 + (j - handCount / 2) * cardBackImage.width / cardBackScale;
+      const y = i * screenCharPadding + screenCharSize * 0.8;
+
+      ctx.drawImage(
+        cardBackImage, 0, 0, cardBackImage.width, cardBackImage.height,
+        x, y, cardBackImage.width / cardBackScale, cardBackImage.height / cardBackScale);
+    }
+  }
+
+  ctx.restore();
 }
 
 // Player
@@ -197,7 +258,6 @@ const charSelectorContext = charSelectorCanvas.getContext("2d");
 const charSize = 256;
 
 const charSelector = {
-  sprites: [],
   offset: 0,
   dragStart: null,
   selectedIndex: 0
@@ -215,15 +275,8 @@ touch(charSelectorCanvas, (touch) => {
   }
 });
 
-function setupCharacterSelector() {
-  for (let i = 0; i < characterCount; i++) {
-    const image = images[`/Assets/Characters/${i}-Idle.png`];
-    charSelector.sprites.push(makeSprite(image, charSize, charSize, 12, 12));
-  }
-}
-
 function animatePlayerWaiting(ms) {
-  tickSprites(charSelector.sprites, ms);
+  tickSprites(characterSprites, ms);
 
   if (charSelector.dragStart == null) {
     charSelector.selectedIndex = clamp(Math.round(charSelector.offset / charSize), 0, characterCount - 1);
@@ -243,12 +296,12 @@ function animatePlayerWaiting(ms) {
   ctx.translate(canvas.width / 2 - charSize / 2, 0);
 
   if (isReady) {
-    drawSprite(ctx, charSelector.sprites[charSelector.selectedIndex], 0, 0);
+    drawSprite(ctx, characterSprites[charSelector.selectedIndex], 0, 0);
   } else {
     for (let i = 0; i < characterCount; i++) {
       ctx.fillStyle = i % 2 == 0 ? "#aaa" : "#bbb";
       ctx.fillRect(i * charSize - charSelector.offset, 0, charSize, charSize);
-      drawSprite(ctx, charSelector.sprites[i], i * charSize - charSelector.offset, 0);
+      drawSprite(ctx, characterSprites[i], i * charSize - charSelector.offset, 0);
     }
   }
 
