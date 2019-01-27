@@ -93,6 +93,23 @@ function onSocketMessage(event) {
     case "playerDone":
       removeFromList(networkData.game.pendingUsernames, json.username);
       break;
+
+    case "setHandCardCount":
+      networkData.game.playerStates[json.username].handCardCount = json.handCardCount;
+      break;
+
+    case "moveSelfCard":
+      const sourcePile = networkData.selfGame[json.source];
+      const targetPile = networkData.selfGame[json.target];
+
+      for (const card of sourcePile) {
+        if (card.id === json.cardId) {
+          removeFromList(sourcePile, card);
+          targetPile.push(card);
+          break;
+        }
+      }
+      break;
   }
 }
 

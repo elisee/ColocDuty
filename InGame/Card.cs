@@ -7,10 +7,10 @@ namespace ColocDuty.InGame
 {
     class Card
     {
-        public readonly int Id;
+        public readonly long Id;
         public readonly CardData Data;
 
-        static int NextId = 0;
+        static long NextId = 0;
 
         public static void ShuffleCardsList(List<Card> cards)
         {
@@ -42,7 +42,7 @@ namespace ColocDuty.InGame
             json.Add("type", Data.Type);
             json.Add("cost", Data.Cost);
             json.Add("moneyModifier", Data.MoneyModifier);
-			json.Add("hygieneModifier", Data.HygieneModifier);
+            json.Add("hygieneModifier", Data.HygieneModifier);
             json.Add("moodModifier", Data.MoodModifier);
             return json;
         }

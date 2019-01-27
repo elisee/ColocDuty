@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Collections.Extensions;
+using System.Collections.Generic;
 using System.Json;
 
 namespace ColocDuty.InGame
@@ -6,13 +7,15 @@ namespace ColocDuty.InGame
     class PlayerState
     {
         public readonly List<Card> Deck = new List<Card>();
-        public readonly List<Card> Hand = new List<Card>();
-        public readonly List<Card> Discard = new List<Card>();
+        public readonly OrderedDictionary<long, Card> Hand = new OrderedDictionary<long, Card>();
+        public readonly OrderedDictionary<long, Card> RentPile = new OrderedDictionary<long, Card>();
+
+        public readonly List<Card> DiscardPile = new List<Card>();
 
         public void ShuffleDeck()
         {
-            foreach (var discardedCard in Discard) Deck.Add(discardedCard);
-            Discard.Clear();
+            foreach (var discardedCard in DiscardPile) Deck.Add(discardedCard);
+            DiscardPile.Clear();
 
             Card.ShuffleCardsList(Deck);
         }
@@ -21,16 +24,17 @@ namespace ColocDuty.InGame
         {
             for (var i = 0; i < handSize; i++)
             {
-                if (Deck.Count == 0) {
+                if (Deck.Count == 0)
+                {
                     // No more cards to keep filling the hand
-                    if (Discard.Count == 0) return;
+                    if (DiscardPile.Count == 0) return;
                     else ShuffleDeck();
                 }
 
                 var card = Deck[0];
                 Deck.RemoveAt(0);
 
-                Hand.Add(card);
+                Hand.Add(card.Id, card);
             }
         }
 
@@ -38,6 +42,11 @@ namespace ColocDuty.InGame
         {
             var json = new JsonObject();
             json.Add("handCardCount", Hand.Count);
+
+            var jsonDiscardPile = new JsonArray();
+            json.Add("discardPile", jsonDiscardPile);
+            foreach (var card in DiscardPile) jsonDiscardPile.Add(card.MakeJson());
+
             return json;
         }
 
@@ -51,7 +60,11 @@ namespace ColocDuty.InGame
 
             var jsonHand = new JsonArray();
             json.Add("hand", jsonHand);
-            foreach (var card in Hand) jsonHand.Add(card.MakeJson());
+            foreach (var card in Hand.Values) jsonHand.Add(card.MakeJson());
+
+            var jsonRentPile = new JsonArray();
+            json.Add("rentPile", jsonRentPile);
+            foreach (var card in RentPile.Values) jsonRentPile.Add(card.MakeJson());
 
             return json;
         }

@@ -13,8 +13,8 @@ namespace ColocDuty.InGame
         public static readonly JsonArray CardPaths = new JsonArray();
 
         public static readonly List<CardData> StarterDeckCardDatas = new List<CardData>();
-        public static readonly List<Card> MarketCards = new List<Card>();
-        public static readonly List<Card> EventCards = new List<Card>();
+        public static readonly List<Card> MarketDeck = new List<Card>();
+        public static readonly List<Card> EventDeck = new List<Card>();
 
         public static void LoadCards(string cardsDatabasePath, CancellationToken shutdownToken)
         {
@@ -82,8 +82,8 @@ namespace ColocDuty.InGame
                     for (var i = 0; i < quantity; i++)
                     {
                         if (zone == "Base") StarterDeckCardDatas.Add(cardData);
-                        else if (zone == "Market") MarketCards.Add(new Card(cardData));
-                        else if (zone == "Event") EventCards.Add(new Card(cardData));
+                        else if (zone == "Market") MarketDeck.Add(new Card(cardData));
+                        else if (zone == "Event") EventDeck.Add(new Card(cardData));
                         else if (zone == "Malus") { /* TODO */ }
                         else throw new Exception($"Invalid zone field {zone} on card {name}");
                     }
@@ -175,27 +175,57 @@ namespace ColocDuty.InGame
             }
         }
 
-        public void PlayerUseCard(Player player, int cardId)
+        public void PlayerUseCard(Player player, long cardId)
         {
+            if (!_pendingPlayers.Contains(player)) return;
+            var playerState = PlayerStates[player];
+            if (!playerState.Hand.TryGetValue(cardId, out var card)) return;
+            playerState.Hand.Remove(card.Id);
+
+            var broadcastJson = new JsonObject();
+            broadcastJson.Add("type", "setHandCardCount");
+            broadcastJson.Add("username", player.Username);
+            broadcastJson.Add("handCardCount", playerState.Hand.Count);
+            _room.BroadcastJson(broadcastJson);
+
             switch (_phase)
             {
                 case TurnPhase.PayRent:
-                    if (!_pendingPlayers.Contains(player)) return;
+                    {
+                        playerState.RentPile.Add(card.Id, card);
 
-                    break;
+                        var moveJson = new JsonObject();
+                        moveJson.Add("type", "moveSelfCard");
+                        moveJson.Add("source", "hand");
+                        moveJson.Add("target", "rentPile");
+                        moveJson.Add("cardId", card.Id);
+                        _room.SendJson(player.Peer, moveJson);
+                        break;
+                    }
 
                 case TurnPhase.Market:
-                    break;
+                    {
+                        playerState.DiscardPile.Add(card);
+
+                        var moveBroadcastJson = new JsonObject();
+                        moveBroadcastJson.Add("type", "discard");
+                        moveBroadcastJson.Add("username", player.Username);
+                        moveBroadcastJson.Add("card", card.MakeJson());
+                        _room.BroadcastJson(moveBroadcastJson);
+                        break;
+                    }
             }
         }
 
-        public void PlayerBuyCard(Player player, int cardId)
+        public void PlayerBuyCard(Player player, long cardId)
         {
-            switch (_phase)
-            {
-                case TurnPhase.Market:
-                    break;
-            }
+            if (_phase != TurnPhase.Market) return;
+            if (!_pendingPlayers.Contains(player)) return;
+
+            var playerState = PlayerStates[player];
+
+            // TODO:
+            // if (!MarketHand.TryGetValue(cardId, out var card)) return;
         }
 
         public void PlayerConfirm(Player player)
