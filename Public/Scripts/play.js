@@ -239,14 +239,14 @@
     const { phase } = networkData.game;
     switch (phase.name) {
       case "PayRent":
-        
+
         confirmText = isPending ? `Touch to pay rent: ${phase.amountDue}` : "Waiting for others to pay rent";
         break;
       case "Market":
         confirmText = isPending ? "Touch to end turn" : "Waiting for turn to end";
         break;
     }
- 
+
     ctx.fillText(confirmText, scaledWidth / 2, confirmAreaHeight / 2);
 
     // Hand
@@ -262,8 +262,10 @@
     const cardOffset = (cardStripWidth - cardThumbSpace * 2) / hand.length;
 
     if (drag.target === "hand") {
-      const hoveredHandCardIndex = clamp(Math.floor((drag.x - (centerX - cardStripWidth / 2)) / cardOffset), 0, hand.length - 1);
-      drag.hoveredCard = hand[hoveredHandCardIndex];
+      if (!drag.willPlayCard) {
+        const hoveredHandCardIndex = clamp(Math.floor((drag.x - (centerX - cardStripWidth / 2)) / cardOffset), 0, hand.length - 1);
+        drag.hoveredCard = hand[hoveredHandCardIndex];
+      }
     } else {
       drag.hoveredCard = null;
     }
