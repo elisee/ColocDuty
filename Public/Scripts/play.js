@@ -302,7 +302,19 @@
           break;
         case "Market":
           phaseTitle = "Market";
-          flavorText = ["Buy cards at the top", "using cards from your hand"];
+
+          if (drag.target === "topPile" && drag.willActivate) {
+            if (drag.hoveredCard.cost <= networkData.selfGame.balanceMoney) flavorText = [`Drop to buy for ¢ ${drag.hoveredCard.cost}!`];
+            else flavorText = [`Need ¢ ${drag.hoveredCard.cost} in balance to buy!`];
+          }
+          else if (drag.target === "hand" && drag.willActivate) {
+            if (drag.hoveredCard.moneyModifier !== 0) flavorText = ["Drop to add ¢ " + drag.hoveredCard.moneyModifier + "!"];
+            else flavorText = ["Drop to use!"];
+          } else {
+            const deck = networkData.selfGame.deck;
+            const discardPile = networkData.game.playerStates[networkData.selfPlayer.username].discardPile;
+            flavorText = ["Buy cards at the top", "using cards from your hand", "", `${deck.length} cards in deck`, `${discardPile.length} in discard pile`];
+          }
           break;
         case "FadeOut": flavorText = ["The week is over!"]; break;
       }
@@ -312,13 +324,15 @@
       selfEmotion = "Sad";
     }
 
-    ctx.font = "bold 72px Montserrat";
-    ctx.fillText(phaseTitle.toUpperCase(), scaledWidth / 2, refHeight / 2 - pileAreaHeight / 2 - 120);
+    if (drag.hoveredCard == null || drag.willActivate) {
+      ctx.font = "bold 72px Montserrat";
+      ctx.fillText(phaseTitle.toUpperCase(), scaledWidth / 2, refHeight / 2 - pileAreaHeight / 2 - 120);
 
-    ctx.font = "64px Montserrat";
-    for (let i = 0; i < flavorText.length; i++) {
-      const text = flavorText[i];
-      ctx.fillText(text, scaledWidth / 2, refHeight / 2 - pileAreaHeight / 2 + i * 90);
+      ctx.font = "64px Montserrat";
+      for (let i = 0; i < flavorText.length; i++) {
+        const text = flavorText[i];
+        ctx.fillText(text, scaledWidth / 2, refHeight / 2 - pileAreaHeight / 2 + i * 90);
+      }
     }
 
     if (phase.name !== "FadeOut") handlePile(hand, handAreaTop, drag.target === "hand");
@@ -407,7 +421,7 @@
     const y = touch.y / scale;
 
     if (touch.started) {
-      if (y <= pileAreaHeight) drag = { target: "topPile", willActive: false };
+      if (y <= pileAreaHeight) drag = { target: "topPile", willActivate: false };
       else if (y >= handAreaTop) drag = { target: "hand", willActivate: false };
       else if (y >= confirmAreaTop) drag = { target: "confirm", willActivate: true };
     }
