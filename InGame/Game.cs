@@ -121,6 +121,14 @@ namespace ColocDuty.InGame
         public const int StartHandSize = 7;
         public const int MarketPileSize = 6;
 
+        public const int MaxMood = 20;
+        int _mood = MaxMood;
+        int _temporaryMood = MaxMood;
+
+        public const int MaxHygiene = 20;
+        int _hygiene = MaxHygiene;
+        int _temporaryHygiene = MaxHygiene;
+
         public readonly OrderedDictionary<Player, PlayerState> PlayerStates = new OrderedDictionary<Player, PlayerState>();
 
         // Used by PayRent and Market
@@ -296,10 +304,15 @@ namespace ColocDuty.InGame
                     {
                         playerState.DiscardPile.Add(card);
 
+                        _temporaryMood = Math.Clamp(_temporaryMood + card.Data.MoodModifier, 0, MaxMood);
+                        _temporaryHygiene = Math.Clamp(_temporaryHygiene + card.Data.HygieneModifier, 0, MaxHygiene);
+
                         var moveBroadcastJson = new JsonObject();
                         moveBroadcastJson.Add("type", "discard");
                         moveBroadcastJson.Add("username", player.Username);
                         moveBroadcastJson.Add("card", card.MakeJson());
+                        moveBroadcastJson.Add("temporaryMood", _temporaryMood);
+                        moveBroadcastJson.Add("temporaryHygiene", _temporaryHygiene);
                         _room.BroadcastJson(moveBroadcastJson);
                         break;
                     }
@@ -462,11 +475,13 @@ namespace ColocDuty.InGame
             json.Add("phase", MakePhaseJson());
             json.Add("pendingUsernames", MakePendingUsernamesJson());
 
-            json.Add("mood", 12);
-            json.Add("maxMood", 20);
+            json.Add("mood", _mood);
+            json.Add("temporaryMood", _temporaryMood);
+            json.Add("maxMood", MaxMood);
 
-            json.Add("hygiene", 17);
-            json.Add("maxHygiene", 20);
+            json.Add("hygiene", _hygiene);
+            json.Add("temporaryHygiene", _temporaryHygiene);
+            json.Add("maxHygiene", MaxHygiene);
 
             json.Add("playerStates", MakePlayerStatesJson());
             return json;

@@ -87,6 +87,12 @@ function onSocketMessage(event) {
       networkData.game.phase = json.phase;
       networkData.game.pendingUsernames = json.pendingUsernames;
 
+      if (json.phase.name == "FadeOut") {
+        // TODO: Increase bar smootly
+        networkData.game.mood = networkData.game.temporaryMood;
+        networkData.game.hygiene = networkData.game.temporaryHygiene;
+      }
+
       if (setup.isViewer) engine.applyViewerState();
       else engine.applyPlayerState();
       break;
@@ -137,6 +143,9 @@ function onSocketMessage(event) {
           }
         }
       }
+
+      networkData.game.temporaryMood = json.temporaryMood;
+      networkData.game.temporaryHygiene = json.temporaryHygiene;
 
       const targetPile = networkData.game.playerStates[json.username]["discardPile"];
       targetPile.push(json.card);

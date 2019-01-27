@@ -35,8 +35,10 @@ if (setup.isViewer) {
   baseImageUrls.push(`/Assets/Viewer/CardIcons.png`);
   baseImageUrls.push("/Assets/Viewer/HygieneBarEmpty.png");
   baseImageUrls.push("/Assets/Viewer/HygieneBarFull.png");
+  baseImageUrls.push("/Assets/Viewer/HygieneBarProgress.png");
   baseImageUrls.push("/Assets/Viewer/MoodBarEmpty.png");
   baseImageUrls.push("/Assets/Viewer/MoodBarFull.png");
+  baseImageUrls.push("/Assets/Viewer/MoodBarProgress.png");
   baseImageUrls.push("/Assets/Viewer/HomeIcon.png");
 
   // Temporary debug button for quick testing

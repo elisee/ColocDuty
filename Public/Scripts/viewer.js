@@ -95,26 +95,65 @@
     const homeIcon = images["/Assets/Viewer/HomeIcon.png"];
     drawImageHalf(ctx, homeIcon, scaledWidth / 2 - homeIcon.width / 4, refHeight - homeIcon.height / 2);
 
+    ctx.textBaseline = "bottom";
+    ctx.fillStyle = "#111";
+    ctx.font = "900 40px Montserrat";
+
+    // Mood
     const moodBarEmpty = images["/Assets/Viewer/MoodBarEmpty.png"];
     const moodBarFull = images["/Assets/Viewer/MoodBarFull.png"];
+    const moodBarProgress = images["/Assets/Viewer/MoodBarProgress.png"];
     drawImageHalf(ctx, moodBarEmpty, 0, refHeight - moodBarEmpty.height / 2);
 
     const moodValue = networkData.game.mood / networkData.game.maxMood;
-    ctx.drawImage(moodBarFull,
-      moodBarFull.width * (1 - moodValue), 0,
-      moodBarFull.width * moodValue, moodBarFull.height,
-      0, refHeight - moodBarFull.height / 2, moodBarFull.width / 2 * moodValue, moodBarFull.height / 2);
+    const temporaryMoodValue = networkData.game.temporaryMood / networkData.game.maxMood;
 
+    const drawMoodBar = (image, value) => {
+      ctx.drawImage(image,
+        image.width * (1 - value), 0,
+        image.width * value, image.height,
+        0, refHeight - image.height / 2, image.width / 2 * value, image.height / 2);
+    };
+
+    if (networkData.game.mood == networkData.game.temporaryMood) {
+      drawMoodBar(moodBarFull, moodValue);
+    } else if (moodValue > temporaryMoodValue) {
+      drawMoodBar(moodBarFull, moodValue);
+      drawMoodBar(moodBarProgress, temporaryMoodValue);
+    } else {
+      drawMoodBar(moodBarProgress, temporaryMoodValue);
+      drawMoodBar(moodBarFull, moodValue);
+    }
+
+    ctx.textAlign = "left";
+    ctx.fillText("Mood", 20, refHeight - 10);
+
+    // Hygiene
     const hygieneBarEmpty = images["/Assets/Viewer/HygieneBarEmpty.png"];
     const hygieneBarFull = images["/Assets/Viewer/HygieneBarFull.png"];
+    const hygieneBarProgress = images["/Assets/Viewer/HygieneBarProgress.png"];
     drawImageHalf(ctx, hygieneBarEmpty, scaledWidth - hygieneBarEmpty.width / 2, refHeight - hygieneBarEmpty.height / 2);
 
     const hygieneValue = networkData.game.hygiene / networkData.game.maxHygiene;
-    ctx.drawImage(hygieneBarFull,
-      0, 0,
-      hygieneBarFull.width * hygieneValue, hygieneBarFull.height,
-      scaledWidth - hygieneBarEmpty.width / 2 * hygieneValue, refHeight - hygieneBarFull.height / 2,
-      hygieneBarFull.width / 2 * hygieneValue, hygieneBarFull.height / 2);
+    const temporaryHygieneValue = networkData.game.temporaryHygiene / networkData.game.maxHygiene;
+
+    const drawHygieneBar = (image, value) => {
+      ctx.drawImage(image,
+        0, 0,
+        image.width * value, image.height,
+        scaledWidth - hygieneBarEmpty.width / 2 * value, refHeight - image.height / 2,
+        image.width / 2 * value, image.height / 2);
+    };
+
+    if (networkData.game.hygiene == networkData.game.temporaryHygiene) {
+      drawHygieneBar(hygieneBarFull, hygieneValue);
+    } else if (hygieneValue > temporaryHygieneValue) {
+      drawHygieneBar(hygieneBarFull, hygieneValue);
+      drawHygieneBar(hygieneBarProgress, temporaryHygieneValue);
+    } else {
+      drawHygieneBar(hygieneBarProgress, temporaryHygieneValue);
+      drawHygieneBar(hygieneBarFull, hygieneValue);
+    }
 
     ctx.textBaseline = "bottom";
     ctx.fillStyle = "#111";
