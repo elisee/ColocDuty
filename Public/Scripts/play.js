@@ -36,7 +36,7 @@
     canvas.height = canvas.clientHeight;
     const ctx = charSelectorContext;
 
-    ctx.fillStyle = "#c55";
+    ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.save();
@@ -46,7 +46,7 @@
       drawSprite(ctx, characterSprites[charSelector.selectedIndex], 0, 0);
     } else {
       for (let i = 0; i < characterCount; i++) {
-        ctx.fillStyle = i % 2 == 0 ? "#aaa" : "#bbb";
+        ctx.fillStyle = i % 2 == 0 ? "#1f394a" : "#214458";
         ctx.fillRect(i * characterSize - charSelector.offset, 0, characterSize, characterSize);
         drawSprite(ctx, characterSprites[i], i * characterSize - charSelector.offset, 0);
       }

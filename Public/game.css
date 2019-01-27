@@ -53,10 +53,6 @@ body > div, body > form {
   text-align: center;
 }
 
-.viewer .debug button {
-  padding: 1em;
-}
-
 /* Player */
 .player {
   display: flex;
@@ -68,19 +64,20 @@ body > div, body > form {
 
 .player .waiting {
   text-align: center;
-  background: #800;
   line-height: 0;
 }
 
 .player .waiting .header {
-  background: #ccc;
+  font-size: 1.25em;
+  text-transform: uppercase;
   padding: 1em;
-  font-size: 1.5em;
+  color: #e7b074;
+  margin-top: 1em;
 }
 
 .player .waiting .username {
   border: 0;
-  background: #444;
+  background: #61637c;
   font-size: 2em;
   text-align: center;
   padding: 0.5em;
@@ -93,19 +90,28 @@ body > div, body > form {
   height: 256px;
 }
 
-.player .waiting button {
-  border: 0;
-  background: #cf4;
-  width: 100%;
-  font-size: 2em;
-  padding: 1em;
-}
-
-.player .waiting button.start {
-  background: #05f;
-}
-
 .player canvas {
   width: 100%;
   height: 100%;
+}
+
+.player .waiting button {
+  margin: 1em;
+  width: auto;
+}
+
+button {
+  padding: 1em;
+  font-size: 2em;
+  border: none;
+  background: linear-gradient(to bottom right, #d48344, #e5ac66);
+  font-weight:bold;
+  color: #fff;
+  text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+  text-transform: uppercase;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+button:active {
+  background: #444;
 }

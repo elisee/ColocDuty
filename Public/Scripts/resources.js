@@ -3,7 +3,7 @@ const backgroundColor = "#00223e";
 const images = {};
 
 const characterSize = 256;
-const characterCount = 4;
+const characterCount = 6;
 const characterSprites = [];
 
 const cardTypeSettings = {

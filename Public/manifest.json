@@ -1,0 +1,9 @@
+{
+  "name": "Coloc Duty",
+  "short_name": "Coloc Duty",
+  "description": "A multiplayer card game.",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#00223e",
+  "background_color": "#00223e"
+}
