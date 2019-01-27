@@ -2,7 +2,7 @@
   const playerColors = ["#0ca0e6", "#9662e0", "#f32972", "#92e8f9", "#f5922a", "#69ce4a"];
 
   window.engine.applyViewerState = () => {
-    setVisible($(".viewer .debug"), networkData.game == null);
+    // setVisible($(".viewer .debug"), networkData.game == null);
   };
 
   let scale;
