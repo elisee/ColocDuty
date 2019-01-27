@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
@@ -146,12 +145,14 @@ namespace ColocDuty
                     RequestPath = "",
                     FileProvider = new PhysicalFileProvider(publicPath),
 
+#if DEBUG
                     // TODO: Only in debug? need to do cache busting though
                     OnPrepareResponse = context =>
                     {
                         context.Context.Response.Headers.Add("Cache-Control", "no-cache, no-store");
                         context.Context.Response.Headers.Add("Expires", "-1");
                     }
+#endif
                 });
             });
 
