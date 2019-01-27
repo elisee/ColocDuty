@@ -95,6 +95,7 @@
 
   const pileAreaHeight = 320;
   const handAreaTop = refHeight - pileAreaHeight;
+  const dragConfirmOffset = 100;
 
   const confirmAreaHeight = 240;
   const confirmAreaTop = handAreaTop - confirmAreaHeight;
@@ -102,7 +103,7 @@
   let drag = { target: null };
 
   function animatePlayerInGame(ms) {
-    function handlePile(pile, top, dragging) {
+    function handlePile(pile, top, dragging, dragOffset) {
       ctx.fillStyle = "#003058";
       ctx.fillRect(0, top, scaledWidth, pileAreaHeight);
 
@@ -124,12 +125,12 @@
         const x = centerX - cardStripWidth / 2 + i * cardOffset;
 
         const mode = card == drag.hoveredCard ? (drag.willActivate ? "play" : "hover") : "none";
-        drawThumbCard(card, x, top + pileAreaHeight / 2 - cardThumbHeight / 2, mode);
+        drawThumbCard(card, x, top + pileAreaHeight / 2 - cardThumbHeight / 2, mode, dragOffset);
       }
     }
 
-    function drawThumbCard(card, x, y, mode) {
-      if (mode === "play") y -= 20;
+    function drawThumbCard(card, x, y, mode, dragOffset) {
+      if (mode === "play") y += dragOffset;
 
       if (mode !== "none") {
         ctx.fillStyle = mode === "play" ? "#fff" : "rgba(255,255,255,0.5)";
@@ -268,20 +269,22 @@
     const { phase } = networkData.game;
     const { hand, rentPile } = networkData.selfGame;
 
-    // Top pile and hand
-    let topPile = null;
-    switch (phase.name) {
-      case "PayRent": topPile = rentPile; break;
-      case "Market": topPile = networkData.game.phase.marketPile; break;
-    }
-
-    if (topPile != null) handlePile(topPile, 0, drag.target === "topPile");
-
     const isAlive = networkData.game.playerStates[networkData.selfPlayer.username].isAlive;
 
     const isPending = networkData.game.pendingUsernames.indexOf(networkData.selfPlayer.username) !== -1;
     const willConfirm = drag.target === "confirm" && drag.willActivate;
     const canPay = isAlive && (phase.name != "PayRent" || networkData.selfGame.balanceMoney >= phase.amountDue);
+
+    // Top pile and hand
+    let topPile = null;
+    if (isPending) {
+      switch (phase.name) {
+        case "PayRent": topPile = rentPile; break;
+        case "Market": topPile = networkData.game.phase.marketPile; break;
+      }
+    }
+
+    if (topPile != null) handlePile(topPile, 0, drag.target === "topPile", dragConfirmOffset);
 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -348,7 +351,7 @@
       }
     }
 
-    if (phase.name !== "FadeOut") handlePile(hand, handAreaTop, drag.target === "hand");
+    if (phase.name !== "FadeOut") handlePile(hand, handAreaTop, drag.target === "hand", -dragConfirmOffset);
 
     if (drag.hoveredCard != null) {
       // Hovered card
