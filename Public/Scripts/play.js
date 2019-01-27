@@ -103,7 +103,7 @@
 
   function animatePlayerInGame(ms) {
     function handlePile(pile, top, dragging) {
-      ctx.fillStyle = dragging ? "#005" : "#66c";
+      ctx.fillStyle = "#003058";
       ctx.fillRect(0, top, scaledWidth, pileAreaHeight);
 
       const cardStripDesiredWidth = (pile.length * cardThumbWidth + (pile.length + 1) * cardThumbSpace);
@@ -132,7 +132,7 @@
       if (mode === "play") y -= 20;
 
       if (mode !== "none") {
-        ctx.fillStyle = mode === "play" ? "#fff" : "#f00";
+        ctx.fillStyle = mode === "play" ? "#fff" : "rgba(255,255,255,0.5)";
         ctx.fillRect(x, y, cardThumbWidth, cardThumbHeight);
       }
 
@@ -277,34 +277,46 @@
       const willConfirm = drag.target === "confirm" && drag.willActivate;
       const canPay = isAlive && (phase.name != "PayRent" || networkData.selfGame.balanceMoney >= phase.amountDue);
 
-      ctx.fillStyle = !isAlive ? "#f00" : (isPending ? (willConfirm ? "#0f0" : (canPay ? "#005" : "#f00") ) : "#66c");
+      const defaultColor = "#004279";
+      const cantPayColor = "#bc2e57";
+      const canPayColor = "#006e43";
+      const confirmColor = "#596c8e";
+
+      ctx.fillStyle = !isAlive ? "#f00" : (isPending ? (willConfirm ? confirmColor : (canPay ? canPayColor : cantPayColor)) : defaultColor);
       ctx.fillRect(0, confirmAreaTop, scaledWidth, confirmAreaHeight);
-      ctx.font = "50px Open Sans";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      ctx.fillStyle = "#fff";
-      let confirmText = "...";
-
-      switch (phase.name) {
-        case "PayRent":
-          confirmText = !isAlive ? `Rent due: ${phase.amountDue}` : (isPending ? `Touch to pay rent: ${phase.amountDue}` : "Waiting for others to pay rent");
-          break;
-        case "Market":
-          confirmText = isPending ? "Touch to end turn" : "Waiting for turn to end";
-          break;
-      }
-
-      ctx.fillText(confirmText, scaledWidth / 2, confirmAreaTop + confirmAreaHeight * 0.3);
-
-      const balanceMoney = 200;
-      let balanceText = !isAlive ? "Game Over! You can't pay the rent..." : ((isPending) ? `Current balance: ${networkData.selfGame.balanceMoney}` : "");
-      ctx.fillText(balanceText, scaledWidth / 2, confirmAreaTop + confirmAreaHeight * 0.7);
 
       // Draw character
       const selfEmotion = "Idle";
       const emotionSprite = emotionSpritesByCharacter[networkData.selfPlayer.characterIndex][selfEmotion];
       drawSprite(ctx, emotionSprite, scaledWidth - emotionSprite.width, confirmAreaTop);
+
+      // Draw phase icon
+      const phaseIcons = images[`/Assets/PhaseIcons.png`];
+      const offset = phase.name === "PayRent" ? 0 : 2;
+      drawFrame(ctx, phaseIcons, offset + (isPending ? 0 : 1), 64, confirmAreaTop + 64);
+
+      ctx.font = "50px Open Sans";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#fff";
+      let confirmText = null;
+
+      switch (phase.name) {
+        case "PayRent":
+          confirmText = !isAlive ? `Rent due: ${phase.amountDue}` : (isPending ? `TAP HERE to pay — ¢ ${phase.amountDue}` : "Waiting for others to pay rent");
+          break;
+        case "Market":
+          confirmText = isPending ? "TAP HERE to end turn" : "Waiting for turn to end";
+          break;
+      }
+
+      if (confirmText != null) {
+        ctx.fillText(confirmText, scaledWidth / 2, confirmAreaTop + confirmAreaHeight * 0.35);
+      }
+
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      let balanceText = !isAlive ? "Game Over! You can't pay the rent..." : ((isPending) ? `Current balance: ¢ ${networkData.selfGame.balanceMoney}` : "");
+      ctx.fillText(balanceText, scaledWidth / 2, confirmAreaTop + confirmAreaHeight * 0.7);
     }
   }
 
@@ -347,7 +359,7 @@
     drag.x = x;
     drag.y = y;
 
-    const threshold = 100;
+    const threshold = 50;
 
     if (drag.target === "topPile") drag.willActivate = y > pileAreaHeight + threshold;
     else if (drag.target === "hand") drag.willActivate = y < handAreaTop - threshold;

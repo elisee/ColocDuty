@@ -118,7 +118,7 @@
     const cartridgeOffset = (characterSize - cartridgeSize) / 2;
 
     const frameImage = images[`/Assets/Viewer/CharacterFrame.png`];
-    const phaseIcons = images[`/Assets/Viewer/PhaseIcons.png`];
+    const phaseIcons = images[`/Assets/PhaseIcons.png`];
     const cardIcons = images[`/Assets/Viewer/CardIcons.png`];
 
     for (let i = 0; i < networkData.players.length; i++) {
