@@ -23,7 +23,7 @@
   });
 
   function animatePlayerWaiting(ms) {
-    tickSprites(characterSprites, ms);
+    tickSprites(allCharacterSprites, ms);
 
     if (charSelector.dragStart == null) {
       charSelector.selectedIndex = clamp(Math.round(charSelector.offset / characterSize), 0, characterCount - 1);
@@ -43,12 +43,12 @@
     ctx.translate(canvas.width / 2 - characterSize / 2, 0);
 
     if (isReady) {
-      drawSprite(ctx, characterSprites[charSelector.selectedIndex], 0, 0);
+      drawSprite(ctx, emotionSpritesByCharacter[charSelector.selectedIndex]["Happy"], 0, 0);
     } else {
       for (let i = 0; i < characterCount; i++) {
         ctx.fillStyle = i % 2 == 0 ? "#1f394a" : "#214458";
         ctx.fillRect(i * characterSize - charSelector.offset, 0, characterSize, characterSize);
-        drawSprite(ctx, characterSprites[i], i * characterSize - charSelector.offset, 0);
+        drawSprite(ctx, emotionSpritesByCharacter[i]["Idle"], i * characterSize - charSelector.offset, 0);
       }
     }
 

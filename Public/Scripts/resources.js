@@ -4,7 +4,9 @@ const images = {};
 
 const characterSize = 256;
 const characterCount = 6;
-const characterSprites = [];
+const allCharacterSprites = [];
+const emotionSpritesByCharacter = [];
+const emotions = [ "Idle", "Happy", "Sad", "Bad", "Mixed" ];
 
 const cardTypeSettings = {
   "Event": { color: "#ffc15f" },
@@ -49,7 +51,11 @@ function loadImages(imageUrls, callback) {
 
 function setupCharacterSprites() {
   for (let i = 0; i < characterCount; i++) {
-    const image = images[`/Assets/Characters/${i}-Idle.png`];
-    characterSprites.push(makeSprite(image, characterSize, characterSize, 12, 12));
+    const emotionSprites = emotionSpritesByCharacter[i] = {};
+    for (const emotion of emotions) {
+      const sprite = makeSprite(images[`/Assets/Characters/${i}-${emotion}.png`], characterSize, characterSize, 12, 12);
+      allCharacterSprites.push(sprite);
+      emotionSprites[emotion] = sprite;
+    }
   }
 }

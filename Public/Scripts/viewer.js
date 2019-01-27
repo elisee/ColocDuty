@@ -13,7 +13,7 @@
   const ctx = canvas.getContext("2d");
 
   window.engine.animateViewer = (ms) => {
-    tickSprites(characterSprites, ms);
+    tickSprites(allCharacterSprites, ms);
 
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
@@ -147,7 +147,8 @@
       // Draw cartridge
       ctx.drawImage(frameImage, 0, 0, frameImage.width, frameImage.height, playerX + cartridgeOffset, playerY + cartridgeOffset, cartridgeSize, cartridgeSize);
 
-      drawSprite(ctx, characterSprites[player.characterIndex], playerX, playerY, characterSize, characterSize);
+      const emotion = "Idle";
+      drawSprite(ctx, emotionSpritesByCharacter[player.characterIndex][emotion], playerX, playerY, characterSize, characterSize);
 
       ctx.font = "bold 36px Montserrat";
       ctx.fillStyle = playerColors[i];

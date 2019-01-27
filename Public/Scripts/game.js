@@ -5,7 +5,13 @@ window.setup = {
 
 const baseImageUrls = [];
 
-for (let i = 0; i < characterCount; i++) baseImageUrls.push(`/Assets/Characters/${i}-Idle.png`);
+for (let i = 0; i < characterCount; i++) {
+  baseImageUrls.push(`/Assets/Characters/${i}-Idle.png`);
+  baseImageUrls.push(`/Assets/Characters/${i}-Mixed.png`);
+  baseImageUrls.push(`/Assets/Characters/${i}-Sad.png`);
+  baseImageUrls.push(`/Assets/Characters/${i}-Happy.png`);
+  baseImageUrls.push(`/Assets/Characters/${i}-Bad.png`);
+}
 
 var cardTypes = Object.keys(cardTypeSettings);
 for (let i = 0; i < cardTypes.length; i++) {
