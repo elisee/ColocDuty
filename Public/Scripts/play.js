@@ -234,7 +234,7 @@
       // Action
       ctx.fillStyle = "#fddd6e";
       ctx.font = "700 40px Montserrat";
-      writeWrappedText(ctx, card.action, x + bigCardWidth / 2, y + bigCardHeight * 0.87, bigCardWidth * 0.65, 40);
+      writeWrappedText(ctx, card.action, x + bigCardWidth / 2, y + bigCardHeight * 0.87, bigCardWidth * 0.7, 40);
 
       // Type
       ctx.fillStyle = cardTypeSettings[card.type].color;

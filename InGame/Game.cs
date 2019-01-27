@@ -443,6 +443,9 @@ namespace ColocDuty.InGame
                             // TODO: Increase this smartly based on the current deck of the players maybe?
                             _rentAmount = (int)Math.Ceiling(_rentAmount * 1.05);
 
+                            _mood = _temporaryMood;
+                            _hygiene = _temporaryHygiene;
+
                             foreach (var player in _room.Players.Values)
                             {
                                 var playerState = PlayerStates[player];
