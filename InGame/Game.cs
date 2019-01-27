@@ -140,8 +140,8 @@ namespace ColocDuty.InGame
             var moneyAmountInDeck = 0f;
             foreach (var starterCard in StarterDeckCardDatas) moneyAmountInDeck += starterCard.MoneyModifier;
 
-            // Initial target is to pay with rouglhly 2 cards
-            _rentAmount = (int)Math.Floor(moneyAmountInDeck / StarterDeckCardDatas.Count * 2);
+            // Initial target can be payed with one card
+            _rentAmount = 2;
 
             foreach (var player in room.Players.Values)
             {
