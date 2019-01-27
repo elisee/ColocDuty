@@ -24,7 +24,7 @@ namespace ColocDuty.InGame
                 var headerLine = reader.ReadLine();
 
                 int nameColumnIndex = 0, zoneColumnIndex = 0, quantityColumnIndex = 0,
-                    actionColumnIndex = 0, descriptionColumnIndex = 0, typeColumnIndex = 0,
+                    imageNameColumnIndex = 0, actionColumnIndex = 0, descriptionColumnIndex = 0, typeColumnIndex = 0,
                     costColumnIndex = 0, moneyColumnIndex = 0, hygieneColumnIndex = 0, moodColumnIndex = 0;
 
                 var headerValues = headerLine.Split('\t');
@@ -32,11 +32,14 @@ namespace ColocDuty.InGame
                 {
                     var headerValue = headerValues[i];
 
-                    if (headerValue == "Name") nameColumnIndex = i;
+                    // TODO: Name, action and description based on the language
+
+                    if (headerValue == "Name_en") nameColumnIndex = i;
                     else if (headerValue == "Zone") zoneColumnIndex = i;
                     else if (headerValue == "Quantity") quantityColumnIndex = i;
-                    else if (headerValue == "Action") actionColumnIndex = i;
-                    else if (headerValue == "Description") descriptionColumnIndex = i;
+                    else if (headerValue == "Name") imageNameColumnIndex = i;
+                    else if (headerValue == "Action_en") actionColumnIndex = i;
+                    else if (headerValue == "Description_en") descriptionColumnIndex = i;
                     else if (headerValue == "Type") typeColumnIndex = i;
                     else if (headerValue == "Cost") costColumnIndex = i;
                     else if (headerValue == "Money") moneyColumnIndex = i;
@@ -53,21 +56,22 @@ namespace ColocDuty.InGame
                     var name = values[nameColumnIndex].Trim();
                     if (string.IsNullOrWhiteSpace(name)) continue;
 
-                    var action = values[actionColumnIndex];
-                    var description = values[descriptionColumnIndex];
                     var type = values[typeColumnIndex];
+                    var imageName = values[imageNameColumnIndex].Trim();
+                    var cardImagePath = Path.Combine(cardsImagePath, type, $"{imageName}.png");
+                    if (!File.Exists(cardImagePath)) Console.WriteLine($"Missing image for card '{type}/{imageName}'");
+
+                    var action = values[actionColumnIndex].Trim();
+                    var description = values[descriptionColumnIndex].Trim();
                     var cost = !string.IsNullOrWhiteSpace(values[costColumnIndex]) ? int.Parse(values[costColumnIndex]) : 0;
                     var moneyModifier = !string.IsNullOrWhiteSpace(values[moneyColumnIndex]) ? int.Parse(values[moneyColumnIndex]) : 0;
                     var hygieneModifier = !string.IsNullOrWhiteSpace(values[hygieneColumnIndex]) ? int.Parse(values[hygieneColumnIndex]) : 0;
                     var moodModifier = !string.IsNullOrWhiteSpace(values[moodColumnIndex]) ? int.Parse(values[moodColumnIndex]) : 0;
 
-                    // Validation
-                    var cardImagePath = Path.Combine(cardsImagePath, type, $"{name}.png");
-                    if (!File.Exists(cardImagePath)) Console.WriteLine($"Missing image for card '{type}/{name}'");
-
                     var cardData = new CardData()
                     {
                         Name = name,
+                        ImageName = imageName,
                         Action = action,
                         Description = description,
                         Type = type,
@@ -78,7 +82,7 @@ namespace ColocDuty.InGame
                     };
 
                     CardDatas.Add(cardData);
-                    CardPaths.Add($"{type}/{name}");
+                    CardPaths.Add($"{type}/{imageName}");
 
                     var zone = values[zoneColumnIndex];
                     var quantity = !string.IsNullOrWhiteSpace(values[quantityColumnIndex]) ? int.Parse(values[quantityColumnIndex]) : 1;

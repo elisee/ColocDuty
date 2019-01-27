@@ -37,6 +37,7 @@ namespace ColocDuty.InGame
             var json = new JsonObject();
             json.Add("id", Id);
             json.Add("name", Data.Name);
+            json.Add("imageName", Data.ImageName);
             json.Add("action", Data.Action);
             json.Add("description", Data.Description);
             json.Add("type", Data.Type);

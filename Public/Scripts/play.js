@@ -136,7 +136,7 @@
         ctx.fillRect(x, y, cardThumbWidth, cardThumbHeight);
       }
 
-      const cardArt = images[`/Assets/Cards/${card.type}/${card.name}.png`];
+      const cardArt = images[`/Assets/Cards/${card.type}/${card.imageName}.png`];
       const cardOverlay = images[`/Assets/Cards/Card_${card.type}.png`];
 
       const scale = cardOverlay.height / cardThumbHeight;
@@ -153,7 +153,7 @@
     }
 
     function drawBigCard(card, x, y) {
-      const cardArt = images[`/Assets/Cards/${card.type}/${card.name}.png`];
+      const cardArt = images[`/Assets/Cards/${card.type}/${card.imageName}.png`];
       const cardOverlay = images[`/Assets/Cards/Card_${card.type}.png`];
 
       const scale = cardOverlay.height / bigCardHeight;

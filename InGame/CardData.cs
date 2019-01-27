@@ -8,6 +8,7 @@ namespace ColocDuty.InGame
     class CardData
     {
         public string Name;
+        public string ImageName;
         public string Action;
         public string Description;
         public string Type;
