@@ -9,24 +9,28 @@ body {
   font-family: 'Montserrat', sans-serif;
   user-select: none;
   text-align: center;
-  overflow: hidden;
   background: #00223e;
+  color: #eee;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
 }
 
 h1 {
   font-size: 3em;
   font-weight: bold;
-  padding: 0.5em;
+}
+
+h1 img {
+  max-width: 100%;
+  max-height: 400px;
 }
 
 h2 {
-  font-size: 2em;
+  font-size: 1.5em;
   text-transform: uppercase;
-  margin-bottom: 0.5em;
-}
-
-.start {
-  padding: 1em;
+  margin-bottom: 0.25em;
 }
 
 button {
@@ -34,7 +38,7 @@ button {
 }
 
 .join {
-  padding: 1em;
+  padding: 0 1em;
 }
 
 .join input {
@@ -42,13 +46,16 @@ button {
   text-align: center;
   font-size: 2em;
   width: 5em;
-  text-transform: uppercase;  
+  text-transform: uppercase;
+  margin-right: 0.5em;
 }
 
 .join .code {
+  display: flex;
   margin-bottom: 1em;
+  justify-content: center;
 }
 
-p { 
-  margin-bottom: 1em;
+.start {
+  padding: 0 1em;
 }

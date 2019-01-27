@@ -21,6 +21,12 @@ body > div, body > form {
 }
 
 .loading, .disconnected {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading > div, .disconnected > div {
   font-size: 2em;
   text-align: center;
   padding: 0.5em;
