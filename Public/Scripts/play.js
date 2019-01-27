@@ -261,13 +261,32 @@
     ctx.save();
     ctx.scale(scale, scale);
 
-    ctx.fillStyle = "#f0f";
-
     const centerX = scaledWidth / 2;
     const centerY = refHeight / 2;
 
     const { phase } = networkData.game;
     const { hand, rentPile } = networkData.selfGame;
+
+    let phaseGlobalIcon;
+    switch (phase.name) {
+      case "PayRentFadeIn":
+      case "PayRent":
+        phaseGlobalIcon = images[`/Assets/LetterIcon.png`];
+        break;
+      case "MarketFadeIn":
+      case "Market":
+        phaseGlobalIcon = images[`/Assets/StoreIcon.png`];
+        break;
+    }
+
+    if (phaseGlobalIcon != null) {
+      ctx.globalAlpha = 0.2;
+      ctx.drawImage(phaseGlobalIcon, centerX - phaseGlobalIcon.width / 2, centerY);
+      ctx.globalAlpha = 1.0;
+    }
+
+    ctx.fillStyle = "#f0f";
+
 
     const isAlive = networkData.game.playerStates[networkData.selfPlayer.username].isAlive;
 
@@ -297,8 +316,8 @@
     if (isAlive) {
       switch (phase.name) {
         case "PayRentFadeIn":
-          phaseTitle = "Pay Rent";
-          flavorText = ["A new week begins..."]; break;
+          phaseTitle = "A new week begins!";
+          flavorText = ["Wonderful!"]; break;
         case "PayRent":
           phaseTitle = "Pay Rent";
           if (drag.target === "hand" && drag.willActivate) {
@@ -342,12 +361,12 @@
 
     if (drag.hoveredCard == null || drag.willActivate) {
       ctx.font = "bold 72px Montserrat";
-      ctx.fillText(phaseTitle.toUpperCase(), scaledWidth / 2, refHeight / 2 - pileAreaHeight / 2 - 120);
+      ctx.fillText(phaseTitle.toUpperCase(), scaledWidth / 2, refHeight / 2 - pileAreaHeight / 2 - 270);
 
       ctx.font = "64px Montserrat";
       for (let i = 0; i < flavorText.length; i++) {
         const text = flavorText[i];
-        ctx.fillText(text, scaledWidth / 2, refHeight / 2 - pileAreaHeight / 2 + i * 90);
+        ctx.fillText(text, scaledWidth / 2, refHeight / 2 - pileAreaHeight / 2 - 150 + i * 90);
       }
     }
 

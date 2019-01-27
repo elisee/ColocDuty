@@ -22,9 +22,14 @@ baseImageUrls.push("/Assets/Cards/Badge_Price.png");
 baseImageUrls.push("/Assets/Cards/Money.png");
 baseImageUrls.push(`/Assets/PhaseIcons.png`);
 
-if (setup.isViewer) {
-  $("audio").play();
+baseImageUrls.push(`/Assets/StoreIcon.png`);
+baseImageUrls.push(`/Assets/LetterIcon.png`);
 
+if (setup.isViewer) {
+  try {
+  $("audio").play();
+  } catch {}
+  
   baseImageUrls.push(`/Assets/Viewer/Background.jpg`);
   baseImageUrls.push(`/Assets/Viewer/CharacterFrame.png`);
   baseImageUrls.push(`/Assets/Viewer/CardIcons.png`);

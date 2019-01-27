@@ -32,8 +32,7 @@
     ctx.restore();
   };
 
-  function drawBackground()
-  {
+  function drawBackground() {
     const bg = images[`/Assets/Viewer/Background.jpg`];
     ctx.drawImage(bg, (scaledWidth - bg.width) / 2, 0);
 
@@ -60,20 +59,38 @@
 
     const { phase } = networkData.game;
 
+    let phaseTitle = "";
+    let phaseDetails = "";
+    let phaseGlobalIcon;
     switch (phase.name) {
       case "PayRent":
-        ctx.fillStyle = "#fff";
-        ctx.textAlign = "center";
-
-        ctx.fillStyle = "#e7ad64";
-        ctx.font = "lighter 40px Open Sans";
-        ctx.fillText(`TIME TO PAY THE RENT!`, scaledWidth / 2, refHeight / 2 - 40);
-
-        ctx.fillStyle = "#fff";
-        ctx.font = "900 96px Montserrat";
-        ctx.fillText(phase.amountDue + " ¢looqs", scaledWidth / 2, refHeight / 2 + 40);
+        phaseTitle = `TIME TO PAY THE RENT!`;
+        phaseDetails = phase.amountDue + " ¢looqs";
+        phaseGlobalIcon = images[`/Assets/LetterIcon.png`];
+        break;
+      case "Market":
+        phaseTitle = `LET'S GO SHOPPING!`;
+        phaseGlobalIcon = images[`/Assets/StoreIcon.png`];
         break;
     }
+
+    if (phaseGlobalIcon != null) {
+      ctx.globalAlpha = 0.2;
+      ctx.drawImage(phaseGlobalIcon, 0, 0, phaseGlobalIcon.width, phaseGlobalIcon.height,
+        scaledWidth / 2 - phaseGlobalIcon.width * 2 / 6, refHeight / 3 - phaseGlobalIcon.height * 2 / 4, phaseGlobalIcon.width * 2 / 3, phaseGlobalIcon.height * 2 / 3);
+      ctx.globalAlpha = 1.0;
+    }
+
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+
+    ctx.fillStyle = "#e7ad64";
+    ctx.font = "lighter 40px Open Sans";
+    ctx.fillText(phaseTitle, scaledWidth / 2, refHeight / 2 - 40);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "900 96px Montserrat";
+    ctx.fillText(phaseDetails, scaledWidth / 2, refHeight / 2 + 40);
 
     const homeIcon = images["/Assets/Viewer/HomeIcon.png"];
     drawImageHalf(ctx, homeIcon, scaledWidth / 2 - homeIcon.width / 4, refHeight - homeIcon.height / 2);
@@ -99,13 +116,13 @@
       scaledWidth - hygieneBarEmpty.width / 2 * hygieneValue, refHeight - hygieneBarFull.height / 2,
       hygieneBarFull.width / 2 * hygieneValue, hygieneBarFull.height / 2);
 
-      ctx.textBaseline = "bottom";
-      ctx.fillStyle = "#111";
-      ctx.font = "900 40px Montserrat";
-      ctx.textAlign = "left";
-      ctx.fillText("Mood", 20, refHeight - 10);
-      ctx.textAlign = "right";
-      ctx.fillText("Hygiene", scaledWidth - 20, refHeight - 10);
+    ctx.textBaseline = "bottom";
+    ctx.fillStyle = "#111";
+    ctx.font = "900 40px Montserrat";
+    ctx.textAlign = "left";
+    ctx.fillText("Mood", 20, refHeight - 10);
+    ctx.textAlign = "right";
+    ctx.fillText("Hygiene", scaledWidth - 20, refHeight - 10);
   }
 
   function drawPlayers() {
