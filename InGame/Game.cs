@@ -325,7 +325,7 @@ namespace ColocDuty.InGame
             {
                 case TurnPhase.PayRent:
                     {
-                        playerState.RentPile.Add(card.Id, card);
+                        playerState.Hand.Add(card.Id, card);
 
                         var moveJson = new JsonObject();
                         moveJson.Add("type", "moveSelfCard");
