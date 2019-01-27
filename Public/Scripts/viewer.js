@@ -186,16 +186,26 @@
       const playerY = topMargin + Math.floor(i / 2) * entryHeight;
 
       // Draw enveloppe
+      let isAlive = true;
+      let isPending = false;
+      let shouldBeSad = false;
+      let isIdle = true;
+
       if (networkData.game != null) {
         const { phase } = networkData.game;
 
+        isAlive = networkData.game.playerStates[player.username].isAlive;
+        isPending = networkData.game.pendingUsernames.indexOf(player.username) !== -1;
+        shouldBeSad = phase.name === "PayRent";
+        isIdle = true;
+
         if (phase.name === "PayRent" || phase.name === "Market") {
-          const isDone = networkData.game.pendingUsernames.indexOf(player.username) === -1;
+          isIdle = false;
           ctx.save();
           ctx.translate(playerX + cartridgeOffset + (flipped ? -phaseIcons.height : cartridgeSize), playerY + 120);
 
           const offset = phase.name === "PayRent" ? 0 : 2;
-          drawFrame(ctx, phaseIcons, offset + (isDone ? 1 : 0), 0, 0);
+          drawFrame(ctx, phaseIcons, offset + (isPending ? 0 : 1), 0, 0);
           ctx.restore();
         }
       }
@@ -203,7 +213,7 @@
       // Draw cartridge
       ctx.drawImage(frameImage, 0, 0, frameImage.width, frameImage.height, playerX + cartridgeOffset, playerY + cartridgeOffset, cartridgeSize, cartridgeSize);
 
-      const emotion = "Idle";
+      let emotion = !isAlive ? "Sad" : (isPending ? (shouldBeSad ? "Mixed" : "Idle") : (isIdle ? "Idle" : "Happy"));
       drawSprite(ctx, emotionSpritesByCharacter[player.characterIndex][emotion], playerX, playerY, characterSize, characterSize);
 
       ctx.font = "bold 36px Montserrat";
