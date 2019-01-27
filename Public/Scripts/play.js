@@ -101,7 +101,7 @@
 
   let drag = { target: null };
 
-  function animatePlayerInGame() {
+  function animatePlayerInGame(ms) {
     function handlePile(pile, top, dragging) {
       ctx.fillStyle = dragging ? "#005" : "#66c";
       ctx.fillRect(0, top, scaledWidth, pileAreaHeight);
@@ -234,6 +234,8 @@
       ctx.restore();
     }
 
+    tickSprites(allCharacterSprites, ms);
+
     canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
     scale = canvas.height / refHeight;
@@ -298,6 +300,11 @@
       const balanceMoney = 200;
       let balanceText = !isAlive ? "Game Over! You can't pay the rent..." : ((isPending) ? `Current balance: ${networkData.selfGame.balanceMoney}` : "");
       ctx.fillText(balanceText, scaledWidth / 2, confirmAreaTop + confirmAreaHeight * 0.7);
+
+      // Draw character
+      const selfEmotion = "Idle";
+      const emotionSprite = emotionSpritesByCharacter[networkData.selfPlayer.characterIndex][selfEmotion];
+      drawSprite(ctx, emotionSprite, scaledWidth - emotionSprite.width, confirmAreaTop);
     }
   }
 
