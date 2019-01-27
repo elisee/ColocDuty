@@ -152,7 +152,7 @@
         x, y, cardThumbWidth, cardThumbHeight);
     }
 
-    function drawBigCard(card, x, y) {
+    function drawBigCard(card, x, y, drawCost) {
       const cardArt = images[`/Assets/Cards/${card.type}/${card.imageName}.png`];
       const cardOverlay = images[`/Assets/Cards/Card_${card.type}.png`];
 
@@ -170,6 +170,19 @@
 
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
+
+      // Cost
+      if (drawCost) {
+        const badgePrice = images[`/Assets/Cards/Badge_Price.png`];
+        const badgePriceIconScale = 0.5;
+        ctx.drawImage(
+          badgePrice, 0, 0, badgePrice.width, badgePrice.height,
+          x + (bigCardWidth - badgePrice.width * badgePriceIconScale) * 0.5, y - bigCardHeight * 0.05, badgePrice.width * badgePriceIconScale, badgePrice.height * badgePriceIconScale);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "900 90px Montserrat";
+        ctx.fillText(card.cost, x + bigCardWidth * 0.48, y + bigCardHeight * 0.07);
+      }
 
       // Money
       ctx.fillStyle = "#ffffff";
@@ -339,7 +352,10 @@
 
     if (drag.hoveredCard != null) {
       // Hovered card
-      if (!drag.willActivate) drawBigCard(drag.hoveredCard, centerX - bigCardWidth / 2, centerY - bigCardHeight / 2);
+      if (!drag.willActivate) {
+        const drawCost = drag.target == "topPile" && networkData.game.phase.name == "Market";
+        drawBigCard(drag.hoveredCard, centerX - bigCardWidth / 2, centerY - bigCardHeight / 2, drawCost);
+      }
     } else {
       // Confirm area
       const defaultColor = "#004279";

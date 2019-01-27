@@ -18,6 +18,7 @@ for (let i = 0; i < cardTypes.length; i++) {
   baseImageUrls.push(`/Assets/Cards/Card_${cardTypes[i]}.png`);
 }
 
+baseImageUrls.push("/Assets/Cards/Badge_Price.png");
 baseImageUrls.push("/Assets/Cards/Money.png");
 baseImageUrls.push(`/Assets/PhaseIcons.png`);
 
