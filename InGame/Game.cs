@@ -153,7 +153,6 @@ namespace ColocDuty.InGame
                 }
 
                 playerState.ShuffleDeck();
-                playerState.DrawHand(StartHandSize);
             }
 
             _marketDeck = new List<Card>();
@@ -176,21 +175,9 @@ namespace ColocDuty.InGame
                         {
                             var playerState = PlayerStates[player];
 
-                            foreach (var card in playerState.Hand.Values) playerState.DiscardPile.Add(card);
                             playerState.DrawHand(StartHandSize);
-
-                            var broadcastHandJson = new JsonObject();
-                            broadcastHandJson.Add("type", "setHandCardCount");
-                            broadcastHandJson.Add("username", player.Username);
-                            broadcastHandJson.Add("handCardCount", playerState.Hand.Count);
-                            _room.BroadcastJson(broadcastHandJson);
-
-                            playerState.BalanceMoney = 0;
-
-                            var moveJson = new JsonObject();
-                            moveJson.Add("type", "setSelfGame");
-                            moveJson.Add("selfGame", playerState.MakeSelfJson());
-                            _room.SendJson(player.Peer, moveJson);
+                            SendPlayerSelfGame(player);
+                            BroadcastPlayerHandCount(player);
 
                             var moneyInHand = 0;
                             foreach (var card in playerState.Hand.Values) moneyInHand += card.Data.MoneyModifier;
@@ -256,6 +243,27 @@ namespace ColocDuty.InGame
             return cardsJson;
         }
 
+        public void BroadcastPlayerHandCount(Player player)
+        {
+            var playerState = PlayerStates[player];
+
+            var broadcastHandJson = new JsonObject();
+            broadcastHandJson.Add("type", "setHandCardCount");
+            broadcastHandJson.Add("username", player.Username);
+            broadcastHandJson.Add("handCardCount", playerState.Hand.Count);
+            _room.BroadcastJson(broadcastHandJson);
+        }
+
+        public void SendPlayerSelfGame(Player player)
+        {
+            var playerState = PlayerStates[player];
+
+            var moveJson = new JsonObject();
+            moveJson.Add("type", "setSelfGame");
+            moveJson.Add("selfGame", playerState.MakeSelfJson());
+            _room.SendJson(player.Peer, moveJson);
+        }
+
         public void PlayerUseCard(Player player, long cardId)
         {
             if (!_pendingPlayers.Contains(player)) return;
@@ -263,11 +271,7 @@ namespace ColocDuty.InGame
             if (!playerState.Hand.TryGetValue(cardId, out var card)) return;
             playerState.Hand.Remove(card.Id);
 
-            var broadcastJson = new JsonObject();
-            broadcastJson.Add("type", "setHandCardCount");
-            broadcastJson.Add("username", player.Username);
-            broadcastJson.Add("handCardCount", playerState.Hand.Count);
-            _room.BroadcastJson(broadcastJson);
+            BroadcastPlayerHandCount(player);
 
             playerState.BalanceMoney += card.Data.MoneyModifier;
             var moneyJson = new JsonObject();
@@ -323,6 +327,7 @@ namespace ColocDuty.InGame
 
             playerState.BalanceMoney -= card.Data.Cost;
             playerState.DiscardPile.Add(card);
+            SendPlayerSelfGame(player);
         }
 
         public void PlayerConfirm(Player senderPlayer)
@@ -356,11 +361,8 @@ namespace ColocDuty.InGame
 
                                 playerState.RentPile.Clear();
                                 playerState.BalanceMoney = 0;
-
-                                var moveJson = new JsonObject();
-                                moveJson.Add("type", "setSelfGame");
-                                moveJson.Add("selfGame", playerState.MakeSelfJson());
-                                _room.SendJson(player.Peer, moveJson);
+                                
+                                SendPlayerSelfGame(player);
                             }
 
                             SetPhase(TurnPhase.MarketFadeIn);
@@ -382,6 +384,19 @@ namespace ColocDuty.InGame
                         {
                             // TODO: Increase this smartly based on the current deck of the players maybe?
                             _rentAmount = (int)Math.Ceiling(_rentAmount * 1.05);
+
+                            foreach (var player in _room.Players.Values)
+                            {
+                                var playerState = PlayerStates[player];
+
+                                foreach (var card in playerState.Hand.Values) playerState.DiscardPile.Add(card);
+                                playerState.Hand.Clear();
+
+                                playerState.BalanceMoney = 0;
+                                
+                                SendPlayerSelfGame(player);
+                                BroadcastPlayerHandCount(player);
+                            }
 
                             SetPhase(TurnPhase.FadeOut);
                         }
