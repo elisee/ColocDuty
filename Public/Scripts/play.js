@@ -266,13 +266,16 @@
 
     if (drag.hoveredCard != null) {
       // Hovered card
-      drawBigCard(drag.hoveredCard, centerX - bigCardWidth / 2, centerY - bigCardHeight / 2);
+      if (!drag.willActivate) drawBigCard(drag.hoveredCard, centerX - bigCardWidth / 2, centerY - bigCardHeight / 2);
     } else {
       // Confirm area
+      const isAlive = networkData.game.playerStates[networkData.selfPlayer.username].isAlive;
+
       const isPending = networkData.game.pendingUsernames.indexOf(networkData.selfPlayer.username) !== -1;
       const willConfirm = drag.target === "confirm" && drag.willActivate;
+      const canPay = isAlive && (phase.name != "PayRent" || networkData.selfGame.balanceMoney >= phase.amountDue);
 
-      ctx.fillStyle = isPending ? (willConfirm ? "#0f0" : "#005") : "#66c";
+      ctx.fillStyle = !isAlive ? "#f00" : (isPending ? (willConfirm ? "#0f0" : (canPay ? "#005" : "#f00") ) : "#66c");
       ctx.fillRect(0, confirmAreaTop, scaledWidth, confirmAreaHeight);
       ctx.font = "50px Open Sans";
       ctx.textAlign = "center";
@@ -283,14 +286,18 @@
 
       switch (phase.name) {
         case "PayRent":
-          confirmText = isPending ? `Touch to pay rent: ${phase.amountDue}` : "Waiting for others to pay rent";
+          confirmText = !isAlive ? `Rent due: ${phase.amountDue}` : (isPending ? `Touch to pay rent: ${phase.amountDue}` : "Waiting for others to pay rent");
           break;
         case "Market":
           confirmText = isPending ? "Touch to end turn" : "Waiting for turn to end";
           break;
       }
 
-      ctx.fillText(confirmText, scaledWidth / 2, confirmAreaTop + confirmAreaHeight / 2);
+      ctx.fillText(confirmText, scaledWidth / 2, confirmAreaTop + confirmAreaHeight * 0.3);
+
+      const balanceMoney = 200;
+      let balanceText = !isAlive ? "Game Over! You can't pay the rent..." : ((isPending) ? `Current balance: ${networkData.selfGame.balanceMoney}` : "");
+      ctx.fillText(balanceText, scaledWidth / 2, confirmAreaTop + confirmAreaHeight * 0.7);
     }
   }
 

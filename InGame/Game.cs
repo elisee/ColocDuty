@@ -123,7 +123,7 @@ namespace ColocDuty.InGame
         readonly List<Player> _pendingPlayers = new List<Player>();
 
         #region Pay rent Phase
-        int _rentAmount = 100;
+        int _rentAmount;
         #endregion
 
         #region Market Phase
@@ -132,6 +132,12 @@ namespace ColocDuty.InGame
         public Game(Room room)
         {
             _room = room;
+
+            var moneyAmountInDeck = 0f;
+            foreach (var starterCard in StarterDeckCardDatas) moneyAmountInDeck += starterCard.MoneyModifier;
+
+            // Initial target is to pay with rouglhly 2 cards
+            _rentAmount = (int)Math.Floor(moneyAmountInDeck / StarterDeckCardDatas.Count * 2);
 
             foreach (var player in room.Players.Values)
             {
@@ -161,8 +167,46 @@ namespace ColocDuty.InGame
                     if (_phaseTimer >= FadeInDuration)
                     {
                         _pendingPlayers.Clear();
-                        // TODO: Remove or skip dead players
-                        _pendingPlayers.AddRange(PlayerStates.Keys);
+
+                        foreach (var player in _room.Players.Values)
+                        {
+                            var playerState = PlayerStates[player];
+
+                            foreach (var card in playerState.Hand.Values) playerState.DiscardPile.Add(card);
+                            playerState.DrawHand(StartHandSize);
+
+                            var broadcastHandJson = new JsonObject();
+                            broadcastHandJson.Add("type", "setHandCardCount");
+                            broadcastHandJson.Add("username", player.Username);
+                            broadcastHandJson.Add("handCardCount", playerState.Hand.Count);
+                            _room.BroadcastJson(broadcastHandJson);
+
+                            playerState.BalanceMoney = 0;
+
+                            var moveJson = new JsonObject();
+                            moveJson.Add("type", "setSelfGame");
+                            moveJson.Add("selfGame", playerState.MakeSelfJson());
+                            _room.SendJson(player.Peer, moveJson);
+
+                            var moneyInHand = 0;
+                            foreach (var card in playerState.Hand.Values) moneyInHand += card.Data.MoneyModifier;
+
+                            if (moneyInHand < _rentAmount)
+                            {
+                                // TODO: Remove player from the game properly
+                                playerState.IsAlive = false;
+
+                                var broadcastGameoverJson = new JsonObject();
+                                broadcastGameoverJson.Add("type", "setGameover");
+                                broadcastGameoverJson.Add("username", player.Username);
+                                _room.BroadcastJson(broadcastGameoverJson);
+                            }
+                            else
+                            {
+                                _pendingPlayers.Add(player);
+                            }
+                        }
+
                         SetPhase(TurnPhase.PayRent);
                     }
                     break;
@@ -180,19 +224,6 @@ namespace ColocDuty.InGame
                 case TurnPhase.FadeOut:
                     if (_phaseTimer >= FadeInDuration)
                     {
-                        foreach (var player in _room.Players.Values)
-                        {
-                            var playerState = PlayerStates[player];
-
-                            foreach (var card in playerState.Hand.Values) playerState.DiscardPile.Add(card);
-                            playerState.DrawHand(StartHandSize);
-
-                            var moveJson = new JsonObject();
-                            moveJson.Add("type", "setSelfGame");
-                            moveJson.Add("selfGame", playerState.MakeSelfJson());
-                            _room.SendJson(player.Peer, moveJson);
-                        }
-
                         SetPhase(TurnPhase.PayRentFadeIn);
                     }
                     break;
@@ -234,6 +265,12 @@ namespace ColocDuty.InGame
             broadcastJson.Add("handCardCount", playerState.Hand.Count);
             _room.BroadcastJson(broadcastJson);
 
+            playerState.BalanceMoney += card.Data.MoneyModifier;
+            var moneyJson = new JsonObject();
+            moneyJson.Add("type", "updateBalanceMoney");
+            moneyJson.Add("balanceMoney", playerState.BalanceMoney);
+            _room.SendJson(player.Peer, moneyJson);
+
             switch (_phase)
             {
                 case TurnPhase.PayRent:
@@ -270,7 +307,7 @@ namespace ColocDuty.InGame
 
             var playerState = PlayerStates[player];
 
-            if (!_marketPile.TryGetValue(cardId, out var card) || playerState.Money < card.Data.Cost) return;
+            if (!_marketPile.TryGetValue(cardId, out var card) || playerState.BalanceMoney < card.Data.Cost) return;
 
             _marketPile.Remove(cardId);
             DrawMarketPileCard();
@@ -280,30 +317,25 @@ namespace ColocDuty.InGame
             broadcastJson.Add("marketPile", MakeMarketPileJson());
             _room.BroadcastJson(broadcastJson);
 
-            playerState.Money -= card.Data.Cost;
+            playerState.BalanceMoney -= card.Data.Cost;
             playerState.DiscardPile.Add(card);
         }
 
-        public void PlayerConfirm(Player player)
+        public void PlayerConfirm(Player senderPlayer)
         {
             switch (_phase)
             {
                 case TurnPhase.PayRent:
                     {
-                        if (!_pendingPlayers.Contains(player)) return;
+                        if (!_pendingPlayers.Contains(senderPlayer)) return;
 
-                        var rentPile = PlayerStates[player].RentPile;
-                        var money = 0;
-                        foreach (var card in rentPile.Values) money += card.Data.MoneyModifier;
+                        if (PlayerStates[senderPlayer].BalanceMoney < _rentAmount) return;
 
-                        // TODO: Check that the player has put enough money for rent
-
-                        rentPile.Clear();
-                        _pendingPlayers.Remove(player);
+                        _pendingPlayers.Remove(senderPlayer);
 
                         var json = new JsonObject();
                         json.Add("type", "playerDone");
-                        json.Add("username", player.Username);
+                        json.Add("username", senderPlayer.Username);
                         _room.BroadcastJson(json);
 
                         if (_pendingPlayers.Count == 0)
@@ -314,6 +346,19 @@ namespace ColocDuty.InGame
                             _marketPile.Clear();
                             for (var i = 0; i < MarketPileSize; i++) DrawMarketPileCard();
 
+                            foreach (var player in _room.Players.Values)
+                            {
+                                var playerState = PlayerStates[player];
+
+                                playerState.RentPile.Clear();
+                                playerState.BalanceMoney = 0;
+
+                                var moveJson = new JsonObject();
+                                moveJson.Add("type", "setSelfGame");
+                                moveJson.Add("selfGame", playerState.MakeSelfJson());
+                                _room.SendJson(player.Peer, moveJson);
+                            }
+
                             SetPhase(TurnPhase.MarketFadeIn);
                         }
                     }
@@ -321,16 +366,19 @@ namespace ColocDuty.InGame
 
                 case TurnPhase.Market:
                     {
-                        if (!_pendingPlayers.Contains(player)) return;
-                        _pendingPlayers.Remove(player);
+                        if (!_pendingPlayers.Contains(senderPlayer)) return;
+                        _pendingPlayers.Remove(senderPlayer);
 
                         var json = new JsonObject();
                         json.Add("type", "playerDone");
-                        json.Add("username", player.Username);
+                        json.Add("username", senderPlayer.Username);
                         _room.BroadcastJson(json);
 
                         if (_pendingPlayers.Count == 0)
                         {
+                            // TODO: Increase this smartly based on the current deck of the players maybe?
+                            _rentAmount = (int)Math.Ceiling(_rentAmount * 1.05);
+
                             SetPhase(TurnPhase.FadeOut);
                         }
                     }

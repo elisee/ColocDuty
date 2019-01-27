@@ -21,7 +21,8 @@ const networkData = {
   players: null,
   game: null,
   selfPlayer: null,
-  selfGame: null
+  selfGame: null,
+  gameover: false
 };
 
 function onSocketMessage(event) {
@@ -98,8 +99,16 @@ function onSocketMessage(event) {
       networkData.game.playerStates[json.username].handCardCount = json.handCardCount;
       break;
 
+    case "setGameover":
+      networkData.game.playerStates[json.username].isAlive = false;
+      break;
+
     case "setSelfGame":
       networkData.selfGame = json.selfGame;
+      break;
+
+    case "updateBalanceMoney":
+      networkData.selfGame.balanceMoney = json.balanceMoney;
       break;
 
     case "moveSelfCard": {

@@ -6,13 +6,15 @@ namespace ColocDuty.InGame
 {
     class PlayerState
     {
+        public bool IsAlive = true;
+
         public readonly List<Card> Deck = new List<Card>();
         public readonly OrderedDictionary<long, Card> Hand = new OrderedDictionary<long, Card>();
         public readonly OrderedDictionary<long, Card> RentPile = new OrderedDictionary<long, Card>();
 
         public readonly List<Card> DiscardPile = new List<Card>();
 
-        public int Money = 0;
+        public int BalanceMoney = 0;
 
         public void ShuffleDeck()
         {
@@ -45,6 +47,9 @@ namespace ColocDuty.InGame
         public JsonObject MakePublicJson()
         {
             var json = new JsonObject();
+
+            json.Add("isAlive", IsAlive);
+
             json.Add("handCardCount", Hand.Count);
 
             var jsonDiscardPile = new JsonArray();
@@ -69,6 +74,8 @@ namespace ColocDuty.InGame
             var jsonRentPile = new JsonArray();
             json.Add("rentPile", jsonRentPile);
             foreach (var card in RentPile.Values) jsonRentPile.Add(card.MakeJson());
+
+            json.Add("balanceMoney", BalanceMoney);
 
             return json;
         }
