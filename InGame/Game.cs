@@ -118,6 +118,7 @@ namespace ColocDuty.InGame
         double _phaseTimer;
 
         const double FadeInDuration = 1.0;
+        const double FadeOutDuration = 5.0;
 
         public const int MarketPileSize = 6;
 
@@ -234,7 +235,7 @@ namespace ColocDuty.InGame
                     break;
 
                 case TurnPhase.FadeOut:
-                    if (_phaseTimer >= FadeInDuration)
+                    if (_phaseTimer >= FadeOutDuration)
                     {
                         SetPhase(TurnPhase.PayRentFadeIn);
                     }

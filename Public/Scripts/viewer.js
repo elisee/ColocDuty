@@ -61,6 +61,8 @@
 
     let phaseTitle = "";
     let phaseDetails = "";
+    let phaseDetails2 = "";
+    let phaseDetailsFontSize = 96;
     let phaseGlobalIcon;
     switch (phase.name) {
       case "PayRent":
@@ -71,6 +73,41 @@
       case "Market":
         phaseTitle = `LET'S GO SHOPPING!`;
         phaseGlobalIcon = images[`/Assets/StoreIcon.png`];
+        break;
+      case "FadeOut":
+        let moodState = "";
+        let drawCount = 0;
+        if (networkData.game.mood > 15) {
+          moodState = "excellent";
+          drawCount = 7;
+        } else if (networkData.game.mood > 10) {
+          moodState = "good";
+          drawCount = 6;
+        } else if (networkData.game.mood > 5) {
+          moodState = "bad";
+          drawCount = 5;
+        } else {
+          moodState = "awful";
+          drawCount = 4;
+        }
+
+        let hygieneState = "";
+        let malusCount = "";
+        if (networkData.game.hygiene > 10) {
+          hygieneState = "good";
+          malusCount = "0 malus cards";
+        } else if (networkData.game.hygiene > 5) {
+          hygieneState = "bad";
+          malusCount = "1 malus card";
+        } else {
+          hygieneState = "awful";
+          malusCount = "2 malus cards";
+        }
+
+        phaseTitle = `COLOC'S REVIEW`;
+        phaseDetailsFontSize = "42";
+        phaseDetails = `The mood is ${moodState}, you can draw ${drawCount} cards.`;
+        phaseDetails2 = `The hygiene is ${hygieneState}, you will receive ${malusCount} in your deck.`;
         break;
     }
 
@@ -89,8 +126,12 @@
     ctx.fillText(phaseTitle, scaledWidth / 2, refHeight / 2 - 40);
 
     ctx.fillStyle = "#fff";
-    ctx.font = "900 96px Montserrat";
+    ctx.font = `900 ${phaseDetailsFontSize}px Montserrat`;
     ctx.fillText(phaseDetails, scaledWidth / 2, refHeight / 2 + 40);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = `900 ${phaseDetailsFontSize}px Montserrat`;
+    ctx.fillText(phaseDetails2, scaledWidth / 2, refHeight / 2 + 100);
 
     const homeIcon = images["/Assets/Viewer/HomeIcon.png"];
     drawImageHalf(ctx, homeIcon, scaledWidth / 2 - homeIcon.width / 4, refHeight - homeIcon.height / 2);
