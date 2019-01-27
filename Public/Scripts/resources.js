@@ -16,6 +16,7 @@ const cardTypeSettings = {
 };
 
 function loadImages(imageUrls, callback) {
+  const total = imageUrls.length;
   let imageQueue = imageUrls.length;
 
   for (const url of imageUrls) {
@@ -24,12 +25,24 @@ function loadImages(imageUrls, callback) {
     image.addEventListener("load", () => {
       images[url] = image;
       imageQueue--;
-      if (imageQueue === 0) callback();
+
+      $(".loading .progress").textContent = `${total - imageQueue} / ${total}`;
+
+      if (imageQueue === 0) {
+        $(".loading .progress").textContent = "";
+        callback();
+      }
     });
 
     image.addEventListener("error", (event) => {
       imageQueue--;
-      if (imageQueue === 0) callback();
+
+      $(".loading .progress").textContent = `${total - imageQueue} / ${total}`;
+
+      if (imageQueue === 0) {
+        $(".loading .progress").textContent = "";
+        callback();
+      }
     })
   }
 }

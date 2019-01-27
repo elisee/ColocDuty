@@ -41,7 +41,7 @@ button {
   background: linear-gradient(to bottom right, #d48344, #e5ac66);
   font-weight:bold;
   color: #fff;
-  text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+  text-shadow: 0px 2px 0px rgba(0,0,0,0.3);
   text-transform: uppercase;
   box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
 }
