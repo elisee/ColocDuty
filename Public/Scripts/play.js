@@ -257,7 +257,7 @@
     let topPile = null;
     switch (phase.name) {
       case "PayRent": topPile = rentPile; break;
-      // case "Market": topPile = marketPile; break
+      case "Market": topPile = networkData.game.phase.marketPile; break;
     }
 
     if (topPile != null) handlePile(topPile, 0, drag.target === "topPile");
