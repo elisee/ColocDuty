@@ -393,7 +393,7 @@ namespace ColocDuty.InGame
 
                                 playerState.RentPile.Clear();
                                 playerState.BalanceMoney = 0;
-                                
+
                                 SendPlayerSelfGame(player);
                             }
 
@@ -425,7 +425,7 @@ namespace ColocDuty.InGame
                                 playerState.Hand.Clear();
 
                                 playerState.BalanceMoney = 0;
-                                
+
                                 SendPlayerSelfGame(player);
                                 BroadcastPlayerHandCount(player);
                             }

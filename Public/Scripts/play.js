@@ -264,6 +264,63 @@
 
     if (topPile != null) handlePile(topPile, 0, drag.target === "topPile");
 
+    const isAlive = networkData.game.playerStates[networkData.selfPlayer.username].isAlive;
+
+    const isPending = networkData.game.pendingUsernames.indexOf(networkData.selfPlayer.username) !== -1;
+    const willConfirm = drag.target === "confirm" && drag.willActivate;
+    const canPay = isAlive && (phase.name != "PayRent" || networkData.selfGame.balanceMoney >= phase.amountDue);
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#fff";
+    let phaseTitle = "";
+    let flavorText = [];
+
+    let selfEmotion = "Idle";
+
+    if (isAlive) {
+      switch (phase.name) {
+        case "PayRentFadeIn":
+          phaseTitle = "Pay Rent";
+          flavorText = ["A new week begins..."]; break;
+        case "PayRent":
+          phaseTitle = "Pay Rent";
+          if (drag.target === "hand" && drag.willActivate) {
+            if (drag.hoveredCard.moneyModifier !== 0) flavorText = ["Drop to add ¢ " + drag.hoveredCard.moneyModifier + "!"];
+            else flavorText = ["This card is worth ¢ 0"];
+          } else if (canPay) {
+            flavorText = ["You gathered enough!"];
+            selfEmotion = "Happy";
+          } else {
+            flavorText = ["Drag a card up to", "increase your balance."];
+            selfEmotion = "Mixed";
+          }
+          break;
+        case "MarketFadeIn":
+          phaseTitle = "Market";
+          flavorText = ["Time to go shopping!"];
+          break;
+        case "Market":
+          phaseTitle = "Market";
+          flavorText = ["Buy cards at the top", "using cards from your hand"];
+          break;
+        case "FadeOut": flavorText = ["The week is over!"]; break;
+      }
+    } else {
+      phaseTitle = "Game Over";
+      flavorText = ["You lost :("];
+      selfEmotion = "Sad";
+    }
+
+    ctx.font = "bold 72px Montserrat";
+    ctx.fillText(phaseTitle.toUpperCase(), scaledWidth / 2, refHeight / 2 - pileAreaHeight / 2 - 120);
+
+    ctx.font = "64px Montserrat";
+    for (let i = 0; i < flavorText.length; i++) {
+      const text = flavorText[i];
+      ctx.fillText(text, scaledWidth / 2, refHeight / 2 - pileAreaHeight / 2 + i * 90);
+    }
+
     if (phase.name !== "FadeOut") handlePile(hand, handAreaTop, drag.target === "hand");
 
     if (drag.hoveredCard != null) {
@@ -271,29 +328,25 @@
       if (!drag.willActivate) drawBigCard(drag.hoveredCard, centerX - bigCardWidth / 2, centerY - bigCardHeight / 2);
     } else {
       // Confirm area
-      const isAlive = networkData.game.playerStates[networkData.selfPlayer.username].isAlive;
-
-      const isPending = networkData.game.pendingUsernames.indexOf(networkData.selfPlayer.username) !== -1;
-      const willConfirm = drag.target === "confirm" && drag.willActivate;
-      const canPay = isAlive && (phase.name != "PayRent" || networkData.selfGame.balanceMoney >= phase.amountDue);
-
       const defaultColor = "#004279";
       const cantPayColor = "#bc2e57";
       const canPayColor = "#006e43";
       const confirmColor = "#596c8e";
+      const deadColor = "#e82e3e";
 
-      ctx.fillStyle = !isAlive ? "#f00" : (isPending ? (willConfirm ? confirmColor : (canPay ? canPayColor : cantPayColor)) : defaultColor);
+      ctx.fillStyle = !isAlive ? deadColor : (isPending ? (willConfirm ? confirmColor : (canPay ? canPayColor : cantPayColor)) : defaultColor);
       ctx.fillRect(0, confirmAreaTop, scaledWidth, confirmAreaHeight);
 
       // Draw character
-      const selfEmotion = "Idle";
       const emotionSprite = emotionSpritesByCharacter[networkData.selfPlayer.characterIndex][selfEmotion];
       drawSprite(ctx, emotionSprite, scaledWidth - emotionSprite.width, confirmAreaTop);
 
       // Draw phase icon
       const phaseIcons = images[`/Assets/PhaseIcons.png`];
-      const offset = phase.name === "PayRent" ? 0 : 2;
-      drawFrame(ctx, phaseIcons, offset + (isPending ? 0 : 1), 64, confirmAreaTop + 64);
+      if (phase.name === "PayRent" || phase.name === "Market") {
+        const offset = phase.name === "PayRent" ? 0 : 2;
+        drawFrame(ctx, phaseIcons, offset + (isPending || !isAlive ? 0 : 1), 64, confirmAreaTop + 64);
+      }
 
       ctx.font = "50px Open Sans";
       ctx.textAlign = "center";
@@ -303,10 +356,10 @@
 
       switch (phase.name) {
         case "PayRent":
-          confirmText = !isAlive ? `Rent due: ${phase.amountDue}` : (isPending ? `TAP to pay rent — ¢ ${phase.amountDue}` : "Waiting for others to pay rent");
+          confirmText = !isAlive ? `Rent — ¢ ${phase.amountDue}` : (isPending ? `TAP to pay rent — ¢ ${phase.amountDue}` : `Waiting for others... — ¢ ${phase.amountDue}`);
           break;
         case "Market":
-          confirmText = isPending ? "TAP to end turn" : "Waiting for turn to end";
+          confirmText = isPending ? "TAP when you're done" : "Waiting for turn to end";
           break;
       }
 
@@ -315,7 +368,7 @@
       }
 
       ctx.fillStyle = "rgba(255,255,255,0.5)";
-      let balanceText = !isAlive ? "Game Over! You can't pay the rent..." : ((isPending) ? `Current balance: ¢ ${networkData.selfGame.balanceMoney}` : "");
+      let balanceText = !isAlive ? "Can't afford it." : ((isPending) ? `Current balance: ¢ ${networkData.selfGame.balanceMoney}` : "");
       ctx.fillText(balanceText, scaledWidth / 2, confirmAreaTop + confirmAreaHeight * 0.7);
     }
   }
