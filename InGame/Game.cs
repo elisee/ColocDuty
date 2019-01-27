@@ -16,7 +16,7 @@ namespace ColocDuty.InGame
         public static readonly List<CardData> MarketDeckCardDatas = new List<CardData>();
         public static readonly List<CardData> EventDeckCardDatas = new List<CardData>();
 
-        public static void LoadCards(string cardsDatabasePath, CancellationToken shutdownToken)
+        public static void LoadCards(string cardsDatabasePath, string cardsImagePath, CancellationToken shutdownToken)
         {
             using (var reader = new StreamReader(cardsDatabasePath))
             {
@@ -60,6 +60,10 @@ namespace ColocDuty.InGame
                     var moneyModifier = !string.IsNullOrWhiteSpace(values[moneyColumnIndex]) ? int.Parse(values[moneyColumnIndex]) : 0;
                     var hygieneModifier = !string.IsNullOrWhiteSpace(values[hygieneColumnIndex]) ? int.Parse(values[hygieneColumnIndex]) : 0;
                     var moodModifier = !string.IsNullOrWhiteSpace(values[moodColumnIndex]) ? int.Parse(values[moodColumnIndex]) : 0;
+
+                    // Validation
+                    var cardImagePath = Path.Combine(cardsImagePath, type, $"{name}.png");
+                    if (!File.Exists(cardImagePath)) Console.WriteLine($"Missing image for card '{type}/{name}'");
 
                     var cardData = new CardData()
                     {

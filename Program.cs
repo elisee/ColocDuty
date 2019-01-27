@@ -48,7 +48,9 @@ namespace ColocDuty
             var shutdownToken = shutdownTokenSource.Token;
 
             Console.WriteLine($"Loading cards...");
-            Game.LoadCards(Path.Combine(directory.FullName, "InGame", "CardsDatabase.tsv"), shutdownToken);
+            var cardsDatabasePath = Path.Combine(directory.FullName, "InGame", "CardsDatabase.tsv");
+            var cardsImagePath = Path.Combine(publicPath, "Assets", "Cards");
+            Game.LoadCards(cardsDatabasePath, cardsImagePath, shutdownToken);
             Console.WriteLine($"Cards loaded.");
 
             ConcurrentDictionary<string, Room> rooms = new ConcurrentDictionary<string, Room>();
