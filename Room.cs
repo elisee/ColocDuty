@@ -248,7 +248,7 @@ namespace ColocDuty
                     case "start":
                         if (peer.Player == null) { Kick(peer, "Can't start without a player."); return; }
 #if !DEBUG
-                        if (players.Count < MinPlayers) { /* Ignored */ return; }
+                        if (Players.Count < MinPlayers) { /* Ignored */ return; }
 #endif
                         if (game != null) return;
 
@@ -374,7 +374,7 @@ namespace ColocDuty
 #if !DEBUG
                             if (peers.Count == 0)
                             {
-                                _networkOutQueue.Add(new NetworkOutEvent { Type = NetworkOutEventType.End, Peers = new ColocPeer[0] });
+                                _networkOutQueue.Add(new NetworkOutEvent { Type = NetworkOutEventType.End, Peers = new Peer[0] });
                                 return;
                             }
 #endif

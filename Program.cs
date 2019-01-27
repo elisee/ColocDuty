@@ -47,7 +47,7 @@ namespace ColocDuty
             var shutdownToken = shutdownTokenSource.Token;
 
             Console.WriteLine($"Loading cards...");
-            var cardsDatabasePath = Path.Combine(directory.FullName, "InGame", "CardsDatabase.tsv");
+            var cardsDatabasePath = Path.Combine(publicPath, "CardsDatabase.tsv");
             var cardsImagePath = Path.Combine(publicPath, "Assets", "Cards");
             Game.LoadCards(cardsDatabasePath, cardsImagePath, shutdownToken);
             Console.WriteLine($"Cards loaded.");
