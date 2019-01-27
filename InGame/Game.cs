@@ -14,6 +14,7 @@ namespace ColocDuty.InGame
 
         public static readonly List<CardData> StarterDeckCardDatas = new List<CardData>();
         public static readonly List<CardData> MarketDeckCardDatas = new List<CardData>();
+        public static readonly List<CardData> MalusDeckCardDatas = new List<CardData>();
         public static readonly List<CardData> EventDeckCardDatas = new List<CardData>();
 
         public static void LoadCards(string cardsDatabasePath, string cardsImagePath, CancellationToken shutdownToken)
@@ -92,7 +93,7 @@ namespace ColocDuty.InGame
                         if (zone == "Base") StarterDeckCardDatas.Add(cardData);
                         else if (zone == "Market") MarketDeckCardDatas.Add(cardData);
                         else if (zone == "Event") EventDeckCardDatas.Add(cardData);
-                        else if (zone == "Malus") { /* TODO */ }
+                        else if (zone == "Malus") { MalusDeckCardDatas.Add(cardData); }
                         else throw new Exception($"Invalid zone field {zone} on card {name}");
                     }
 
@@ -118,7 +119,6 @@ namespace ColocDuty.InGame
 
         const double FadeInDuration = 1.0;
 
-        public const int StartHandSize = 7;
         public const int MarketPileSize = 6;
 
         public const int MaxMood = 20;
@@ -155,11 +155,7 @@ namespace ColocDuty.InGame
             {
                 var playerState = PlayerStates[player] = new PlayerState();
 
-                for (var i = 0; i < StarterDeckCardDatas.Count; i++)
-                {
-                    playerState.Deck.Add(new Card(StarterDeckCardDatas[i]));
-                }
-
+                for (var i = 0; i < StarterDeckCardDatas.Count; i++) playerState.Deck.Add(new Card(StarterDeckCardDatas[i]));
                 playerState.ShuffleDeck();
             }
 
@@ -179,11 +175,28 @@ namespace ColocDuty.InGame
                     {
                         _pendingPlayers.Clear();
 
+                        var rng = new Random();
+
+                        var malusCardAmount =
+                                _hygiene > 10 ? 0 :
+                                _hygiene > 5 ? 1 : 2;
+
+                        var handSize =
+                            _mood > 15 ? 7 :
+                            _mood > 10 ? 6 :
+                            _mood > 5 ? 5 : 4;
+
                         foreach (var player in _room.Players.Values)
                         {
                             var playerState = PlayerStates[player];
 
-                            playerState.DrawHand(StartHandSize);
+                            for (var i = 0; i < malusCardAmount; i++)
+                            {
+                                var malusCard = new Card(MalusDeckCardDatas[rng.Next(MalusDeckCardDatas.Count)]);
+                                playerState.DiscardPile.Add(malusCard);
+                            }
+
+                            playerState.DrawHand(handSize);
                             SendPlayerSelfGame(player);
                             BroadcastPlayerHandCount(player);
 

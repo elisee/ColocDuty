@@ -327,7 +327,9 @@
             flavorText = ["You gathered enough!"];
             selfEmotion = "Happy";
           } else {
-            flavorText = ["Drag a card up to", "increase your balance."];
+            const deck = networkData.selfGame.deck;
+            const discardPile = networkData.game.playerStates[networkData.selfPlayer.username].discardPile;
+            flavorText = ["Drag a card up to", "increase your balance.", `${deck.length} cards in deck`, `${discardPile.length} in discard pile`];
             selfEmotion = "Mixed";
           }
           break;
