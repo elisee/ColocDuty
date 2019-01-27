@@ -110,6 +110,10 @@ function onSocketMessage(event) {
         }
       }
       break;
+
+    case "setMarketPile":
+      networkData.game.phase.marketPile = json.marketPile;
+      break;
   }
 }
 

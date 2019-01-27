@@ -13,8 +13,8 @@ namespace ColocDuty.InGame
         public static readonly JsonArray CardPaths = new JsonArray();
 
         public static readonly List<CardData> StarterDeckCardDatas = new List<CardData>();
-        public static readonly List<Card> MarketDeck = new List<Card>();
-        public static readonly List<Card> EventDeck = new List<Card>();
+        public static readonly List<CardData> MarketDeckCardDatas = new List<CardData>();
+        public static readonly List<CardData> EventDeckCardDatas = new List<CardData>();
 
         public static void LoadCards(string cardsDatabasePath, CancellationToken shutdownToken)
         {
@@ -82,8 +82,8 @@ namespace ColocDuty.InGame
                     for (var i = 0; i < quantity; i++)
                     {
                         if (zone == "Base") StarterDeckCardDatas.Add(cardData);
-                        else if (zone == "Market") MarketDeck.Add(new Card(cardData));
-                        else if (zone == "Event") EventDeck.Add(new Card(cardData));
+                        else if (zone == "Market") MarketDeckCardDatas.Add(cardData);
+                        else if (zone == "Event") EventDeckCardDatas.Add(cardData);
                         else if (zone == "Malus") { /* TODO */ }
                         else throw new Exception($"Invalid zone field {zone} on card {name}");
                     }
@@ -93,6 +93,8 @@ namespace ColocDuty.InGame
         }
 
         readonly Room _room;
+        readonly List<Card> _marketDeck;
+        readonly OrderedDictionary<long, Card> _marketPile = new OrderedDictionary<long, Card>();
 
         enum TurnPhase
         {
@@ -109,6 +111,7 @@ namespace ColocDuty.InGame
         const double FadeInDuration = 1.0;
 
         public const int StartHandSize = 7;
+        public const int MarketPileSize = 6;
 
         public readonly OrderedDictionary<Player, PlayerState> PlayerStates = new OrderedDictionary<Player, PlayerState>();
 
@@ -138,6 +141,10 @@ namespace ColocDuty.InGame
                 playerState.ShuffleDeck();
                 playerState.DrawHand(StartHandSize);
             }
+
+            _marketDeck = new List<Card>();
+            foreach (var cardData in MarketDeckCardDatas) _marketDeck.Add(new Card(cardData));
+            Card.ShuffleCardsList(_marketDeck);
         }
 
         public void Update(double deltaTime)
@@ -173,6 +180,28 @@ namespace ColocDuty.InGame
                     }
                     break;
             }
+        }
+
+        public void DrawMarketPileCard()
+        {
+            if (_marketDeck.Count == 0)
+            {
+                // TODO: No more cards in the deck???? REALLY?
+                return;
+            }
+
+            var card = _marketDeck[0];
+            _marketDeck.RemoveAt(0);
+
+            _marketPile.Add(card.Id, card);
+        }
+
+        public JsonArray MakeMarketPileJson()
+        {
+            var cardsJson = new JsonArray();
+            foreach (var card in _marketPile.Values) cardsJson.Add(card.MakeJson());
+
+            return cardsJson;
         }
 
         public void PlayerUseCard(Player player, long cardId)
@@ -224,8 +253,18 @@ namespace ColocDuty.InGame
 
             var playerState = PlayerStates[player];
 
-            // TODO:
-            // if (!MarketHand.TryGetValue(cardId, out var card)) return;
+            if (!_marketPile.TryGetValue(cardId, out var card) || playerState.Money < card.Data.Cost) return;
+
+            _marketPile.Remove(cardId);
+            DrawMarketPileCard();
+
+            var broadcastJson = new JsonObject();
+            broadcastJson.Add("type", "setMarketPile");
+            broadcastJson.Add("marketPile", MakeMarketPileJson());
+            _room.BroadcastJson(broadcastJson);
+
+            playerState.Money -= card.Data.Cost;
+            playerState.DiscardPile.Add(card);
         }
 
         public void PlayerConfirm(Player player)
@@ -245,7 +284,16 @@ namespace ColocDuty.InGame
                         json.Add("username", player.Username);
                         _room.BroadcastJson(json);
 
-                        if (_pendingPlayers.Count == 0) SetPhase(TurnPhase.MarketFadeIn);
+                        if (_pendingPlayers.Count == 0)
+                        {
+                            foreach (var card in _marketPile.Values) _marketDeck.Add(card);
+                            Card.ShuffleCardsList(_marketDeck);
+
+                            _marketPile.Clear();
+                            for (var i = 0; i < MarketPileSize; i++) DrawMarketPileCard();
+
+                            SetPhase(TurnPhase.MarketFadeIn);
+                        }
                     }
                     break;
 
@@ -259,7 +307,10 @@ namespace ColocDuty.InGame
                         json.Add("username", player.Username);
                         _room.BroadcastJson(json);
 
-                        if (_pendingPlayers.Count == 0) SetPhase(TurnPhase.FadeOut);
+                        if (_pendingPlayers.Count == 0)
+                        {
+                            SetPhase(TurnPhase.FadeOut);
+                        }
                     }
                     break;
             }
@@ -316,7 +367,7 @@ namespace ColocDuty.InGame
 
                 case TurnPhase.Market:
                     {
-                        // TODO: Send market
+                        json.Add("marketPile", MakeMarketPileJson());
                         break;
                     }
             }

@@ -12,6 +12,8 @@ namespace ColocDuty.InGame
 
         public readonly List<Card> DiscardPile = new List<Card>();
 
+        public int Money = 0;
+
         public void ShuffleDeck()
         {
             foreach (var discardedCard in DiscardPile) Deck.Add(discardedCard);
