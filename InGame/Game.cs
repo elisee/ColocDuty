@@ -176,6 +176,19 @@ namespace ColocDuty.InGame
                 case TurnPhase.FadeOut:
                     if (_phaseTimer >= FadeInDuration)
                     {
+                        foreach (var player in _room.Players.Values)
+                        {
+                            var playerState = PlayerStates[player];
+
+                            foreach (var card in playerState.Hand.Values) playerState.DiscardPile.Add(card);
+                            playerState.DrawHand(StartHandSize);
+
+                            var moveJson = new JsonObject();
+                            moveJson.Add("type", "setSelfGame");
+                            moveJson.Add("selfGame", playerState.MakeSelfJson());
+                            _room.SendJson(player.Peer, moveJson);
+                        }
+
                         SetPhase(TurnPhase.PayRentFadeIn);
                     }
                     break;
@@ -275,8 +288,13 @@ namespace ColocDuty.InGame
                     {
                         if (!_pendingPlayers.Contains(player)) return;
 
+                        var rentPile = PlayerStates[player].RentPile;
+                        var money = 0;
+                        foreach (var card in rentPile.Values) money += card.Data.MoneyModifier;
+
                         // TODO: Check that the player has put enough money for rent
 
+                        rentPile.Clear();
                         _pendingPlayers.Remove(player);
 
                         var json = new JsonObject();

@@ -261,7 +261,8 @@
     }
 
     if (topPile != null) handlePile(topPile, 0, drag.target === "topPile");
-    handlePile(hand, handAreaTop, drag.target === "hand");
+
+    if (phase.name !== "FadeOut") handlePile(hand, handAreaTop, drag.target === "hand");
 
     if (drag.hoveredCard != null) {
       // Hovered card

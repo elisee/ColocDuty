@@ -24,6 +24,8 @@ namespace ColocDuty.InGame
 
         public void DrawHand(int handSize)
         {
+            Hand.Clear();
+
             for (var i = 0; i < handSize; i++)
             {
                 if (Deck.Count == 0)

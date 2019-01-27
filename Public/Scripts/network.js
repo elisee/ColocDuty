@@ -98,7 +98,11 @@ function onSocketMessage(event) {
       networkData.game.playerStates[json.username].handCardCount = json.handCardCount;
       break;
 
-    case "moveSelfCard":
+    case "setSelfGame":
+      networkData.selfGame = json.selfGame;
+      break;
+
+    case "moveSelfCard": {
       const sourcePile = networkData.selfGame[json.source];
       const targetPile = networkData.selfGame[json.target];
 
@@ -110,6 +114,25 @@ function onSocketMessage(event) {
         }
       }
       break;
+    }
+
+    case "discard": {
+      if (!setup.isViewer) {
+        if (json.username == networkData.selfPlayer.username) {
+          const sourcePile = networkData.selfGame["hand"];
+          for (const card of sourcePile) {
+            if (card.id === json.card.id) {
+              removeFromList(sourcePile, card);
+              break;
+            }
+          }
+        }
+      }
+
+      const targetPile = networkData.game.playerStates[json.username]["discardPile"];
+      targetPile.push(json.card);
+      break;
+    }
 
     case "setMarketPile":
       networkData.game.phase.marketPile = json.marketPile;
