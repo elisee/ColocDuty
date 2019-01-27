@@ -93,14 +93,41 @@
   const bigCardWidth = 963;
   const bigCardHeight = 1267;
 
-  const handAreaHeight = 320;
-  const handAreaTop = refHeight - handAreaHeight;
+  const pileAreaHeight = 320;
+  const handAreaTop = refHeight - pileAreaHeight;
 
-  const confirmAreaHeight = 320;
+  const confirmAreaHeight = 240;
+  const confirmAreaTop = handAreaTop - confirmAreaHeight;
 
   let drag = { target: null };
 
   function animatePlayerInGame() {
+    function handlePile(pile, top, dragging) {
+      ctx.fillStyle = dragging ? "#005" : "#66c";
+      ctx.fillRect(0, top, scaledWidth, pileAreaHeight);
+
+      const cardStripDesiredWidth = (pile.length * cardThumbWidth + (pile.length + 1) * cardThumbSpace);
+      const cardStripMaxWidth = scaledWidth - cardThumbSpace * 2;
+
+      cardStripWidth = Math.min(cardStripDesiredWidth, cardStripMaxWidth);
+      const cardOffset = (cardStripWidth - cardThumbSpace * 2) / pile.length;
+
+      if (dragging) {
+        if (!drag.willActivate) {
+          const hoveredCardIndex = clamp(Math.floor((drag.x - (centerX - cardStripWidth / 2)) / cardOffset), 0, pile.length - 1);
+          drag.hoveredCard = pile[hoveredCardIndex];
+        }
+      }
+
+      for (let i = pile.length - 1; i >= 0; i--) {
+        const card = pile[i];
+        const x = centerX - cardStripWidth / 2 + i * cardOffset;
+
+        const mode = card == drag.hoveredCard ? (drag.willActivate ? "play" : "hover") : "none";
+        drawThumbCard(card, x, top + pileAreaHeight / 2 - cardThumbHeight / 2, mode);
+      }
+    }
+
     function drawThumbCard(card, x, y, mode) {
       if (mode === "play") y -= 20;
 
@@ -223,62 +250,47 @@
     const centerX = scaledWidth / 2;
     const centerY = refHeight / 2;
 
-    // Confirm area
-    const isPending = networkData.game.pendingUsernames.indexOf(networkData.selfPlayer.username) !== -1;
-    const willConfirm = drag.target === "confirm" && drag.willConfirm;
-
-    ctx.fillStyle = isPending ? (willConfirm ? "#0f0" : "#005") : "#66c";
-    ctx.fillRect(0, 0, scaledWidth, confirmAreaHeight);
-    ctx.font = "50px Open Sans";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    ctx.fillStyle = "#fff";
-    let confirmText = "...";
-
     const { phase } = networkData.game;
+    const { hand, rentPile } = networkData.selfGame;
+
+    // Top pile and hand
+    let topPile = null;
     switch (phase.name) {
-      case "PayRent":
-
-        confirmText = isPending ? `Touch to pay rent: ${phase.amountDue}` : "Waiting for others to pay rent";
-        break;
-      case "Market":
-        confirmText = isPending ? "Touch to end turn" : "Waiting for turn to end";
-        break;
+      case "PayRent": topPile = rentPile; break;
+      // case "Market": topPile = marketPile; break
     }
 
-    ctx.fillText(confirmText, scaledWidth / 2, confirmAreaHeight / 2);
+    if (topPile != null) handlePile(topPile, 0, drag.target === "topPile");
+    handlePile(hand, handAreaTop, drag.target === "hand");
 
-    // Hand
-    ctx.fillStyle = drag.target === "hand" ? "#005" : "#66c";
-    ctx.fillRect(0, handAreaTop, scaledWidth, handAreaHeight);
-
-    const hand = networkData.selfGame.hand;
-
-    const cardStripDesiredWidth = (hand.length * cardThumbWidth + (hand.length + 1) * cardThumbSpace);
-    const cardStripMaxWidth = scaledWidth - cardThumbSpace * 2;
-
-    cardStripWidth = Math.min(cardStripDesiredWidth, cardStripMaxWidth);
-    const cardOffset = (cardStripWidth - cardThumbSpace * 2) / hand.length;
-
-    if (drag.target === "hand") {
-      if (!drag.willPlayCard) {
-        const hoveredHandCardIndex = clamp(Math.floor((drag.x - (centerX - cardStripWidth / 2)) / cardOffset), 0, hand.length - 1);
-        drag.hoveredCard = hand[hoveredHandCardIndex];
-      }
+    if (drag.hoveredCard != null) {
+      // Hovered card
+      drawBigCard(drag.hoveredCard, centerX - bigCardWidth / 2, centerY - bigCardHeight / 2);
     } else {
-      drag.hoveredCard = null;
+      // Confirm area
+      const isPending = networkData.game.pendingUsernames.indexOf(networkData.selfPlayer.username) !== -1;
+      const willConfirm = drag.target === "confirm" && drag.willActivate;
+
+      ctx.fillStyle = isPending ? (willConfirm ? "#0f0" : "#005") : "#66c";
+      ctx.fillRect(0, confirmAreaTop, scaledWidth, confirmAreaHeight);
+      ctx.font = "50px Open Sans";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      ctx.fillStyle = "#fff";
+      let confirmText = "...";
+
+      switch (phase.name) {
+        case "PayRent":
+          confirmText = isPending ? `Touch to pay rent: ${phase.amountDue}` : "Waiting for others to pay rent";
+          break;
+        case "Market":
+          confirmText = isPending ? "Touch to end turn" : "Waiting for turn to end";
+          break;
+      }
+
+      ctx.fillText(confirmText, scaledWidth / 2, confirmAreaTop + confirmAreaHeight / 2);
     }
-
-    for (let i = hand.length - 1; i >= 0; i--) {
-      const card = hand[i];
-      const x = centerX - cardStripWidth / 2 + i * cardOffset;
-
-      const mode = card == drag.hoveredCard ? (drag.willPlayCard ? "play" : "hover") : "none";
-      drawThumbCard(card, x, handAreaTop + handAreaHeight / 2 - cardThumbHeight / 2, mode);
-    }
-
-    if (drag.hoveredCard != null) drawBigCard(drag.hoveredCard, centerX - bigCardWidth / 2, centerY - bigCardHeight / 2);
   }
 
   touch(canvas, (touch) => {
@@ -286,14 +298,21 @@
       if (drag.target == null) return;
 
       switch (drag.target) {
+        case "topPile":
+          if (drag.willActivate && drag.hoveredCard != null) {
+            // TODO: Restore card to hand or buy it, depending on phase
+          }
+          break;
         case "hand":
-          if (drag.willPlayCard && drag.hoveredCard != null) {
+          if (drag.willActivate && drag.hoveredCard != null) {
             send({ type: "useCard", cardId: drag.hoveredCard.id });
           }
+          break;
         case "confirm":
-          if (drag.willConfirm) {
+          if (drag.willActivate) {
             send({ type: "confirm" });
           }
+          break;
       }
 
       drag = { target: null };
@@ -304,8 +323,9 @@
     const y = touch.y / scale;
 
     if (touch.started) {
-      if (y > handAreaTop) drag = { target: "hand", willPlayCard: false };
-      else if (y < confirmAreaHeight) drag = { target: "confirm" };
+      if (y <= pileAreaHeight) drag = { target: "topPile", willActive: false };
+      else if (y >= handAreaTop) drag = { target: "hand", willActivate: false };
+      else if (y >= confirmAreaTop) drag = { target: "confirm", willActivate: true };
     }
 
     if (drag == null) return;
@@ -314,11 +334,8 @@
 
     const threshold = 100;
 
-    if (drag.target === "hand") {
-      drag.willPlayCard = y < handAreaTop - threshold;
-    }
-    else if (drag.target === "confirm") {
-      drag.willConfirm = y < confirmAreaHeight;
-    }
+    if (drag.target === "topPile") drag.willActivate = y > pileAreaHeight + threshold;
+    else if (drag.target === "hand") drag.willActivate = y < handAreaTop - threshold;
+    else if (drag.target === "confirm") drag.willActivate = y > confirmAreaTop && y < handAreaTop;
   });
 }
