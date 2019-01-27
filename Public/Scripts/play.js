@@ -303,10 +303,10 @@
 
       switch (phase.name) {
         case "PayRent":
-          confirmText = !isAlive ? `Rent due: ${phase.amountDue}` : (isPending ? `TAP HERE to pay — ¢ ${phase.amountDue}` : "Waiting for others to pay rent");
+          confirmText = !isAlive ? `Rent due: ${phase.amountDue}` : (isPending ? `TAP to pay rent — ¢ ${phase.amountDue}` : "Waiting for others to pay rent");
           break;
         case "Market":
-          confirmText = isPending ? "TAP HERE to end turn" : "Waiting for turn to end";
+          confirmText = isPending ? "TAP to end turn" : "Waiting for turn to end";
           break;
       }
 
