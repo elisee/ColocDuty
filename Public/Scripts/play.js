@@ -327,7 +327,11 @@
       switch (drag.target) {
         case "topPile":
           if (drag.willActivate && drag.hoveredCard != null) {
-            // TODO: Restore card to hand or buy it, depending on phase
+            if (networkData.game.phase.name == "PayRent") {
+              send({ type: "recoverCard", cardId: drag.hoveredCard.id });
+            } else if (networkData.game.phase.name == "Market") {
+              send({ type: "buyCard", cardId: drag.hoveredCard.id });
+            }
           }
           break;
         case "hand":

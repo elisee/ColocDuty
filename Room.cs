@@ -269,17 +269,49 @@ namespace ColocDuty
                         break;
 
                     case "useCard":
-                        if (peer.Player == null) { Kick(peer, "Can't use card without a player."); return; }
-                        if (game == null) return;
-
-                        if (!TryGet("cardId", JsonType.Number, out var jsonCardId))
                         {
-                            Kick(peer, "Card id missing.");
-                            return;
+                            if (peer.Player == null) { Kick(peer, "Can't use card without a player."); return; }
+                            if (game == null) return;
+
+                            if (!TryGet("cardId", JsonType.Number, out var jsonCardId))
+                            {
+                                Kick(peer, "Card id missing.");
+                                return;
+                            }
+
+                            game.PlayerUseCard(peer.Player, (int)jsonCardId);
+                            break;
                         }
 
-                        game.PlayerUseCard(peer.Player, (int)jsonCardId);
-                        break;
+                    case "recoverCard":
+                        {
+                            if (peer.Player == null) { Kick(peer, "Can't use card without a player."); return; }
+                            if (game == null) return;
+
+                            if (!TryGet("cardId", JsonType.Number, out var jsonCardId))
+                            {
+                                Kick(peer, "Card id missing.");
+                                return;
+                            }
+
+                            game.PlayerRecoverCard(peer.Player, (int)jsonCardId);
+                            break;
+                        }
+
+                    case "buyCard":
+                        {
+                            if (peer.Player == null) { Kick(peer, "Can't use card without a player."); return; }
+                            if (game == null) return;
+
+                            if (!TryGet("cardId", JsonType.Number, out var jsonCardId))
+                            {
+                                Kick(peer, "Card id missing.");
+                                return;
+                            }
+
+                            game.PlayerBuyCard(peer.Player, (int)jsonCardId);
+                            break;
+                        }
 
                     case "confirm":
                         if (peer.Player == null) { Kick(peer, "Can't use card without a player."); return; }

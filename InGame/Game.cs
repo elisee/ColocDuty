@@ -271,8 +271,6 @@ namespace ColocDuty.InGame
             if (!playerState.Hand.TryGetValue(cardId, out var card)) return;
             playerState.Hand.Remove(card.Id);
 
-            BroadcastPlayerHandCount(player);
-
             playerState.BalanceMoney += card.Data.MoneyModifier;
             var moneyJson = new JsonObject();
             moneyJson.Add("type", "updateBalanceMoney");
@@ -306,6 +304,40 @@ namespace ColocDuty.InGame
                         break;
                     }
             }
+
+            BroadcastPlayerHandCount(player);
+        }
+
+        public void PlayerRecoverCard(Player player, long cardId)
+        {
+            if (!_pendingPlayers.Contains(player)) return;
+            var playerState = PlayerStates[player];
+            if (!playerState.RentPile.TryGetValue(cardId, out var card)) return;
+            playerState.RentPile.Remove(card.Id);
+
+            playerState.BalanceMoney -= card.Data.MoneyModifier;
+            var moneyJson = new JsonObject();
+            moneyJson.Add("type", "updateBalanceMoney");
+            moneyJson.Add("balanceMoney", playerState.BalanceMoney);
+            _room.SendJson(player.Peer, moneyJson);
+
+            switch (_phase)
+            {
+                case TurnPhase.PayRent:
+                    {
+                        playerState.RentPile.Add(card.Id, card);
+
+                        var moveJson = new JsonObject();
+                        moveJson.Add("type", "moveSelfCard");
+                        moveJson.Add("source", "rentPile");
+                        moveJson.Add("target", "hand");
+                        moveJson.Add("cardId", card.Id);
+                        _room.SendJson(player.Peer, moveJson);
+                        break;
+                    }
+            }
+
+            BroadcastPlayerHandCount(player);
         }
 
         public void PlayerBuyCard(Player player, long cardId)
