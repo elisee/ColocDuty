@@ -12,6 +12,10 @@ namespace ColocDuty.InGame
         public static readonly List<CardData> CardDatas = new List<CardData>();
         public static readonly JsonArray CardPaths = new JsonArray();
 
+        public static readonly List<CardData> StarterDeckCardDatas = new List<CardData>();
+        public static readonly List<Card> MarketCards = new List<Card>();
+        public static readonly List<Card> EventCards = new List<Card>();
+
         public static void LoadCards(string cardsDatabasePath, CancellationToken shutdownToken)
         {
             using (var reader = new StreamReader(cardsDatabasePath))
@@ -19,8 +23,9 @@ namespace ColocDuty.InGame
                 // Read header to determine what column to use
                 var headerLine = reader.ReadLine();
 
-                int nameColumnIndex = 0, actionColumnIndex = 0, descriptionColumnIndex = 0, typeColumnIndex = 0;
-                int costColumnIndex = 0, moneyColumnIndex = 0, hygieneColumnIndex = 0, moodColumnIndex = 0;
+                int nameColumnIndex = 0, zoneColumnIndex = 0, quantityColumnIndex = 0,
+                    actionColumnIndex = 0, descriptionColumnIndex = 0, typeColumnIndex = 0,
+                    costColumnIndex = 0, moneyColumnIndex = 0, hygieneColumnIndex = 0, moodColumnIndex = 0;
 
                 var headerValues = headerLine.Split('\t');
                 for (var i = 0; i < headerValues.Length; i++)
@@ -28,6 +33,8 @@ namespace ColocDuty.InGame
                     var headerValue = headerValues[i];
 
                     if (headerValue == "Name") nameColumnIndex = i;
+                    else if (headerValue == "Zone") zoneColumnIndex = i;
+                    else if (headerValue == "Quantity") quantityColumnIndex = i;
                     else if (headerValue == "Action") actionColumnIndex = i;
                     else if (headerValue == "Description") descriptionColumnIndex = i;
                     else if (headerValue == "Type") typeColumnIndex = i;
@@ -54,7 +61,7 @@ namespace ColocDuty.InGame
                     var hygieneModifier = !string.IsNullOrWhiteSpace(values[hygieneColumnIndex]) ? int.Parse(values[hygieneColumnIndex]) : 0;
                     var moodModifier = !string.IsNullOrWhiteSpace(values[moodColumnIndex]) ? int.Parse(values[moodColumnIndex]) : 0;
 
-                    CardDatas.Add(new CardData()
+                    var cardData = new CardData()
                     {
                         Name = name,
                         Action = action,
@@ -64,9 +71,23 @@ namespace ColocDuty.InGame
                         MoneyModifier = moneyModifier,
                         HygieneModifier = hygieneModifier,
                         MoodModifier = moodModifier
-                    });
+                    };
 
+                    CardDatas.Add(cardData);
                     CardPaths.Add($"{type}/{name}");
+
+                    var zone = values[zoneColumnIndex];
+                    var quantity = !string.IsNullOrWhiteSpace(values[quantityColumnIndex]) ? int.Parse(values[quantityColumnIndex]) : 1;
+
+                    for (var i = 0; i < quantity; i++)
+                    {
+                        if (zone == "Base") StarterDeckCardDatas.Add(cardData);
+                        else if (zone == "Market") MarketCards.Add(new Card(cardData));
+                        else if (zone == "Event") EventCards.Add(new Card(cardData));
+                        else if (zone == "Malus") { /* TODO */ }
+                        else throw new Exception($"Invalid zone field {zone} on card {name}");
+                    }
+
                 }
             }
         }
@@ -87,7 +108,6 @@ namespace ColocDuty.InGame
 
         const double FadeInDuration = 1.0;
 
-        public const int StartDeckSize = 14;
         public const int StartHandSize = 7;
 
         public readonly OrderedDictionary<Player, PlayerState> PlayerStates = new OrderedDictionary<Player, PlayerState>();
@@ -105,25 +125,17 @@ namespace ColocDuty.InGame
         {
             _room = room;
 
-            // TODO: Don't take card randomly initially, it's specified in the database
-            var random = new Random();
-
             foreach (var player in room.Players.Values)
             {
                 var playerState = PlayerStates[player] = new PlayerState();
 
-                for (var i = 0; i < StartDeckSize; i++)
+                for (var i = 0; i < StarterDeckCardDatas.Count; i++)
                 {
-                    var data = CardDatas[random.Next(CardDatas.Count)];
-                    playerState.Deck.Add(new Card(data));
+                    playerState.Deck.Add(new Card(StarterDeckCardDatas[i]));
                 }
 
-                // TODO: Use a "FillHand" method or something
-                for (var i = 0; i < StartHandSize; i++)
-                {
-                    var data = CardDatas[random.Next(CardDatas.Count)];
-                    playerState.Hand.Add(new Card(data));
-                }
+                playerState.ShuffleDeck();
+                playerState.DrawHand(StartHandSize);
             }
         }
 
