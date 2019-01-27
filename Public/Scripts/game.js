@@ -23,6 +23,8 @@ baseImageUrls.push("/Assets/Cards/Money.png");
 baseImageUrls.push(`/Assets/PhaseIcons.png`);
 
 if (setup.isViewer) {
+  $("audio").play();
+
   baseImageUrls.push(`/Assets/Viewer/Background.jpg`);
   baseImageUrls.push(`/Assets/Viewer/CharacterFrame.png`);
   baseImageUrls.push(`/Assets/Viewer/CardIcons.png`);
